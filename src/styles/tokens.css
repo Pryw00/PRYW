@@ -1,0 +1,112 @@
+/* ============================================================
+   Design Tokens — Tech Web Alquimist (Wilson Yépez / @Pryw00)
+   ============================================================ */
+
+/* -- Palette ------------------------------------------------- */
+:root {
+  --color-bg-light: #E7E7E7;
+  --color-bg-dark: #1A1A1A;
+  --color-ink: #1A1A1A;
+  --color-paper: #FFFFFF;
+  --color-accent-purple: #7C5CFC;
+  --color-accent-cyan: #4FD8E0;
+  --color-accent-blue: #5B8CF2;
+  --gradient-hero: linear-gradient(115deg, #7C5CFC 0%, #5B8CF2 50%, #4FD8E0 100%);
+
+  /* -- Typography -------------------------------------------- */
+  --font-display: 'Space Grotesk', 'Archivo Black', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  --text-hero:    clamp(3rem, 8vw, 6rem);    /* H1 hero */
+  --text-h1:      clamp(2.5rem, 6vw, 4.5rem);
+  --text-h2:      clamp(2rem, 4vw, 3.5rem);
+  --text-h3:      clamp(1.25rem, 2.5vw, 1.75rem);
+  --text-body:    clamp(1rem, 1.5vw, 1.125rem);
+  --text-small:   0.8125rem;
+
+  /* -- Spacing ----------------------------------------------- */
+  --space-xs:  0.5rem;
+  --space-sm:  1rem;
+  --space-md:  2rem;
+  --space-lg:  4rem;
+  --space-xl:  8rem;
+
+  /* -- Borders / radius -------------------------------------- */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+
+  /* -- Transitions ------------------------------------------- */
+  --transition-fast: 180ms ease;
+  --transition-base: 300ms ease;
+}
+
+/* -- Reset --------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  color: var(--color-ink);
+  background: var(--color-paper);
+  line-height: 1.65;
+}
+
+img, video { display: block; max-width: 100%; }
+a { color: inherit; }
+ul { list-style: none; }
+
+/* -- Focus visible ------------------------------------------- */
+:focus-visible {
+  outline: 3px solid var(--color-accent-purple);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* -- Motion preference --------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* -- Utility: section break gradient ------------------------- */
+.section-gradient {
+  background: var(--gradient-hero);
+  color: #fff;
+}
+
+/* -- Utility: section-light ---------------------------------- */
+.section-light {
+  background: var(--color-bg-light);
+}
+
+/* -- Utility: display heading -------------------------------- */
+.heading-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+/* -- Fade / slide-up scroll animation ----------------------- */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.reveal {
+  opacity: 0;
+}
+.reveal.visible {
+  animation: fadeSlideUp 0.55s ease both;
+}

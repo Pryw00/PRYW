@@ -1,0 +1,214 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects');
+  return projects.map((project) => ({
+    params: { slug: project.id },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+const { title, description, role, images, liveUrl, credit } = project.data;
+---
+<BaseLayout
+  title={`${title} — Wilson Yépez @Pryw00`}
+  description={description}
+>
+  <!-- Page Hero -->
+  <section class="project-hero section-gradient" aria-labelledby="project-title">
+    <div class="project-hero-overlay" aria-hidden="true"></div>
+    <div class="project-hero-inner">
+      <a href="/proyectos" class="back-link">← Proyectos</a>
+      <h1 id="project-title" class="heading-display project-title">{title}</h1>
+      <p class="project-role-badge">{role}</p>
+    </div>
+  </section>
+
+  <!-- Main content -->
+  <article class="project-article">
+    <div class="project-inner">
+
+      {images.length > 0 && (
+        <div class="project-gallery">
+          {images.map((src, i) => (
+            <img
+              src={src}
+              alt={`${title} — screenshot ${i + 1}`}
+              loading={i === 0 ? 'eager' : 'lazy'}
+              class="gallery-img"
+              width="1200"
+              height="675"
+            />
+          ))}
+        </div>
+      )}
+
+      <div class="project-body reveal">
+        <div class="project-meta">
+          <div class="meta-item">
+            <span class="meta-label">Rol</span>
+            <span class="meta-value">{role}</span>
+          </div>
+          {liveUrl && (
+            <div class="meta-item">
+              <span class="meta-label">Live</span>
+              <a href={liveUrl} class="meta-value meta-link" target="_blank" rel="noopener noreferrer">
+                Ver sitio ↗
+              </a>
+            </div>
+          )}
+        </div>
+
+        <div class="project-content prose">
+          <Content />
+        </div>
+
+        <p class="project-credit">{credit}</p>
+      </div>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .project-hero {
+    position: relative;
+    padding: var(--space-xl) var(--space-md);
+    overflow: hidden;
+  }
+
+  .project-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.28);
+  }
+
+  .project-hero-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .back-link {
+    display: inline-block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    margin-bottom: var(--space-md);
+    transition: color var(--transition-fast);
+  }
+  .back-link:hover { color: #fff; }
+
+  .project-title {
+    font-size: var(--text-h1);
+    color: #fff;
+    margin-bottom: var(--space-sm);
+  }
+
+  .project-role-badge {
+    display: inline-block;
+    padding: 4px 16px;
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 999px;
+    font-size: var(--text-small);
+    color: #fff;
+    font-weight: 500;
+  }
+
+  .project-article {
+    padding: var(--space-xl) var(--space-md);
+  }
+
+  .project-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+
+  .project-gallery {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .gallery-img {
+    border-radius: var(--radius-lg);
+    width: 100%;
+    height: auto;
+  }
+
+  .project-meta {
+    display: flex;
+    gap: var(--space-lg);
+    flex-wrap: wrap;
+    padding: var(--space-md);
+    background: var(--color-bg-light);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+  }
+
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .meta-label {
+    font-size: var(--text-small);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-accent-purple);
+  }
+
+  .meta-value {
+    font-size: 0.9375rem;
+    color: var(--color-ink);
+  }
+
+  .meta-link {
+    color: var(--color-accent-purple);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .meta-link:hover { text-decoration: underline; }
+
+  /* Prose styles */
+  .prose {
+    font-size: var(--text-body);
+    line-height: 1.75;
+    color: #333;
+  }
+
+  .prose :global(h2) {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--text-h3);
+    margin: var(--space-md) 0 var(--space-xs);
+    color: var(--color-ink);
+  }
+
+  .prose :global(p) {
+    margin-bottom: var(--space-sm);
+  }
+
+  .prose :global(a) {
+    color: var(--color-accent-purple);
+  }
+
+  .project-credit {
+    font-size: var(--text-small);
+    color: #999;
+    margin-top: var(--space-lg);
+    padding-top: var(--space-md);
+    border-top: 1px solid rgba(0,0,0,0.08);
+  }
+</style>

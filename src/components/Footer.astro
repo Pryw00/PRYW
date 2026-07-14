@@ -1,0 +1,106 @@
+---
+import { profile } from '../data/profile';
+---
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="footer-mark">PRYW</span>
+      <p class="footer-name">{profile.name}</p>
+      <p class="footer-tagline">{profile.tagline} — {profile.location}</p>
+    </div>
+
+    <nav aria-label="Footer navigation" class="footer-nav">
+      <a href="/">Home</a>
+      <a href="/about">About</a>
+      <a href="/proyectos">Proyectos</a>
+      <a href="/clientes">Clientes</a>
+    </nav>
+
+    <div class="footer-contact">
+      <a href={`mailto:${profile.contact.email}`}>{profile.contact.email}</a>
+      <a href={profile.contact.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      <a href={profile.contact.github} target="_blank" rel="noopener noreferrer">GitHub</a>
+    </div>
+  </div>
+  <p class="footer-copy">© {new Date().getFullYear()} Wilson Yépez / @Pryw00. Todos los derechos reservados.</p>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--color-bg-dark);
+    color: rgba(255,255,255,0.85);
+    padding: var(--space-lg) var(--space-md) var(--space-md);
+  }
+
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: var(--space-lg);
+    align-items: start;
+    padding-bottom: var(--space-md);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: var(--space-md);
+  }
+
+  .footer-mark {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 2.5rem;
+    letter-spacing: -0.04em;
+    background: var(--gradient-hero);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: block;
+    margin-bottom: var(--space-xs);
+  }
+
+  .footer-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #fff;
+  }
+
+  .footer-tagline {
+    font-size: var(--text-small);
+    color: rgba(255,255,255,0.55);
+    margin-top: 2px;
+  }
+
+  .footer-nav,
+  .footer-contact {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .footer-nav a,
+  .footer-contact a {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  .footer-nav a:hover,
+  .footer-contact a:hover {
+    color: var(--color-accent-cyan);
+  }
+
+  .footer-copy {
+    max-width: 1200px;
+    margin: 0 auto;
+    font-size: var(--text-small);
+    color: rgba(255,255,255,0.35);
+    text-align: center;
+  }
+
+  @media (max-width: 640px) {
+    .footer-inner {
+      grid-template-columns: 1fr;
+      gap: var(--space-md);
+    }
+  }
+</style>

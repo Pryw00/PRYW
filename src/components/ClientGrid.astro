@@ -1,0 +1,160 @@
+---
+interface Client {
+  name: string;
+  url: string;
+  category: string;
+  thumbnail?: string;
+}
+
+interface Props {
+  clients: Client[];
+}
+
+const { clients } = Astro.props;
+
+const categories = [
+  'Personal / Político',
+  'Gobierno',
+  'Arte y Galerías',
+  'Restaurantes y Pequeños Negocios',
+] as const;
+
+const grouped = categories.map((cat) => ({
+  label: cat,
+  items: clients.filter((c) => c.category === cat),
+}));
+---
+<div class="client-grid-wrapper">
+  {grouped.map(({ label, items }) => items.length > 0 && (
+    <section class="client-category reveal" aria-labelledby={`cat-${label.replace(/\s+/g, '-')}`}>
+      <h3 class="heading-display client-cat-title" id={`cat-${label.replace(/\s+/g, '-')}`}>
+        {label}
+      </h3>
+      <ul class="client-grid" role="list">
+        {items.map((client) => (
+          <li class="client-item">
+            <a
+              href={client.url}
+              class="client-link"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${client.name} — ${client.url}`}
+            >
+              {client.thumbnail && (
+                <img
+                  src={client.thumbnail}
+                  alt={client.name}
+                  class="client-thumb"
+                  width="80"
+                  height="80"
+                  loading="lazy"
+                />
+              )}
+              {!client.thumbnail && (
+                <div class="client-thumb client-thumb--placeholder" aria-hidden="true">
+                  {client.name.slice(0, 2).toUpperCase()}
+                </div>
+              )}
+              <div class="client-meta">
+                <span class="client-name">{client.name}</span>
+                <span class="client-url">{client.url.replace(/^https?:\/\//, '')}</span>
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+</div>
+
+<style>
+  .client-grid-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+
+  .client-cat-title {
+    font-size: var(--text-h3);
+    color: var(--color-ink);
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-xs);
+    border-bottom: 3px solid var(--color-accent-purple);
+    display: inline-block;
+  }
+
+  .client-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-sm);
+  }
+
+  .client-item {
+    background: var(--color-paper);
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+    overflow: hidden;
+  }
+
+  .client-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    text-decoration: none;
+    color: var(--color-ink);
+    transition: background var(--transition-fast);
+  }
+
+  .client-link:hover {
+    background: var(--color-bg-light);
+  }
+
+  .client-thumb {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .client-thumb--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gradient-hero);
+    color: #fff;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  .client-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .client-name {
+    font-weight: 600;
+    font-size: 0.9375rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .client-url {
+    font-size: var(--text-small);
+    color: var(--color-accent-purple);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  @media (max-width: 480px) {
+    .client-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

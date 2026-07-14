@@ -1,0 +1,61 @@
+---
+interface Props {
+  skills: readonly string[];
+}
+
+const { skills } = Astro.props;
+// Duplicate for seamless loop
+const doubled = [...skills, ...skills];
+---
+<div class="skills-marquee" aria-label="Skills">
+  <div class="marquee-track" aria-hidden="true">
+    {doubled.map((skill) => (
+      <span class="skill-pill">{skill}</span>
+    ))}
+  </div>
+</div>
+
+<style>
+  .skills-marquee {
+    overflow: hidden;
+    padding: var(--space-sm) 0;
+    mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+  }
+
+  .marquee-track {
+    display: flex;
+    gap: var(--space-sm);
+    width: max-content;
+    animation: marquee 28s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .marquee-track {
+      animation: none;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+  }
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  .skill-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1.25rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.18);
+    border: 1.5px solid rgba(255,255,255,0.35);
+    color: #fff;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.875rem;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    backdrop-filter: blur(4px);
+  }
+</style>
