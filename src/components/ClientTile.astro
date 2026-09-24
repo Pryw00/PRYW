@@ -1,5 +1,6 @@
 ---
 import { getLangFromUrl, useTranslations } from '../i18n/ui';
+import { toGallery, lightboxData, type GalleryInput } from '../data/gallery';
 
 interface Props {
   name: string;
@@ -8,26 +9,32 @@ interface Props {
   thumbnail?: string;
   color: string;
   status?: 'live' | 'archived';
+  gallery?: GalleryInput[];
 }
 
-const { name, url, category, thumbnail, color, status = 'live' } = Astro.props;
+const { name, url, category, thumbnail, color, status = 'live', gallery: photos = [] } = Astro.props;
 const archived = status === 'archived';
 const t = useTranslations(getLangFromUrl(Astro.url));
 const domain = url.replace(/^https?:\/\//, '').replace(/\/$/, '');
 
-// Live → visit the site. Archived → open its screenshot (if any), otherwise not clickable.
-const Tag = !archived ? 'a' : thumbnail ? 'button' : 'div';
+// Live → visit the site. Archived → open screenshot + photo gallery (if any), otherwise not clickable.
+const gallery = [
+  ...(thumbnail ? [{ src: thumbnail, caption: `${name} — ${t('clients.shotCaption')}` }] : []),
+  ...toGallery(photos, name),
+];
+const hasGallery = archived && gallery.length > 0;
+const Tag = !archived ? 'a' : hasGallery ? 'button' : 'div';
 const linkProps = !archived
   ? { href: url, target: '_blank', rel: 'noopener noreferrer', 'data-cursor': t('cursor.visit') }
-  : thumbnail
-    ? { type: 'button', 'data-lightbox': thumbnail, 'data-lightbox-caption': `${name} — ${domain}`, 'data-cursor': t('cursor.shot') }
+  : hasGallery
+    ? { type: 'button', 'data-lightbox': lightboxData(gallery), 'data-cursor': t(photos.length ? 'cursor.gallery' : 'cursor.shot') }
     : {};
 ---
 <Tag
   {...linkProps}
   class:list={[
     'client reveal group/client flex flex-col gap-3 text-left',
-    { 'is-archived': archived, 'cursor-default': archived && !thumbnail },
+    { 'is-archived': archived, 'cursor-default': archived && !hasGallery },
   ]}
   data-color={color}
   data-category={category}
@@ -67,8 +74,8 @@ const linkProps = !archived
   </div>
   <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
     <span class="font-medium">{name}</span>
-    <span class:list={['font-mono text-mono tracking-[0.04em] text-soft group-hover/client:text-c', { 'line-through': archived && !thumbnail }]}>
-      {!archived ? `${domain} ↗` : thumbnail ? t('status.viewShot') : domain}
+    <span class:list={['font-mono text-mono tracking-[0.04em] text-soft group-hover/client:text-c', { 'line-through': archived && !hasGallery }]}>
+      {!archived ? `${domain} ↗` : !hasGallery ? domain : photos.length ? `${t('status.viewGallery')} · ${gallery.length}` : t('status.viewShot')}
     </span>
   </div>
 </Tag>

@@ -33,13 +33,26 @@ Campos útiles en el frontmatter:
 
 ```yaml
 featured: 1         # destacado en el inicio, en esa posición (1, 2, 3…)
+liveUrl: "https://…" # proyecto en línea: botón "Ver sitio en vivo" (hero + ficha)
+links:               # enlaces extra con su propio nombre
+  - label: "Demo"
+    url: "https://…"
+  - label: "Google Play"
+    url: "https://…"
 status: "archived"   # ya no está en línea; se muestra como histórico
-images: ["/images/projects/shields/01.jpg"]   # galería del proyecto (en public/)
+images:              # proyectos: galería (mosaico + visor)
+  - "/images/projects/shields/01.jpg"
+  - src: "/images/projects/shields/02.jpg"
+    caption: "Pantalla de incidente"   # pie de foto opcional
+gallery:             # clientes archivados: fotos extra que se ven junto a la captura
+  - "/images/clients/niels-olsen/01.jpg"
 ```
 
+- **En proyectos, `featured`, `liveUrl` y `links` basta con escribirlos en un idioma**: el otro los hereda si los deja vacíos. Escribe `links` en ambos si quieres traducir sus nombres.
 - **Destacados:** el inicio muestra solo los proyectos y clientes con `featured`, ordenados por ese número. En proyectos basta ponerlo en el archivo de un idioma. Sin ninguno marcado, se muestran todos los proyectos y los 6 primeros sitios en línea con captura.
 - **Proyecto archivado:** sigue abriendo su página; no muestra enlace al sitio en vivo.
-- **Cliente archivado:** si tiene captura, al hacer clic se abre en un visor; si no, no es clicable.
+- **Cliente archivado:** al hacer clic se abre el visor con la captura y las fotos de `gallery`. Sin captura ni galería, no es clicable.
+- **Galerías:** guarda las fotos en `public/images/projects/<proyecto>/` o `public/images/clients/<cliente>/`. En proyectos, `images` basta con escribirlo en un idioma (escríbelo en ambos si quieres traducir los pies de foto). El visor admite flechas, teclado (← →) y deslizar en móvil.
 
 ## Imágenes
 

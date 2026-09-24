@@ -5,9 +5,8 @@ interface Props {
   /** Omit (and omit `lightbox`) to render a non-clickable tile */
   href?: string;
   external?: boolean;
-  /** Screenshot to open in the lightbox instead of navigating (archived client sites) */
+  /** Lightbox gallery (data/gallery.ts → lightboxData) to open instead of navigating — archived client sites */
   lightbox?: string;
-  lightboxCaption?: string;
   title: string;
   sub?: string;
   role?: string;
@@ -26,7 +25,7 @@ interface Props {
 }
 
 const {
-  href, external = false, lightbox, lightboxCaption, title, sub, role, color, art, image, imageAlt = '',
+  href, external = false, lightbox, title, sub, role, color, art, image, imageAlt = '',
   metaLeft, metaRight, kind, size = 'sm', cursor, transitionName, archivedLabel,
 } = Astro.props;
 
@@ -35,7 +34,7 @@ const clickable = Tag !== 'div';
 const tagProps = href
   ? { href, target: external ? '_blank' : undefined, rel: external ? 'noopener noreferrer' : undefined }
   : lightbox
-    ? { type: 'button', 'data-lightbox': lightbox, 'data-lightbox-caption': lightboxCaption }
+    ? { type: 'button', 'data-lightbox': lightbox }
     : {};
 ---
 <Tag

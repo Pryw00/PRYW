@@ -1,6 +1,7 @@
 ---
 import ClientTile from './ClientTile.astro';
 import { colorFor } from '../data/palette';
+import type { GalleryInput } from '../data/gallery';
 import { getLangFromUrl, useTranslations } from '../i18n/ui';
 
 interface Client {
@@ -10,6 +11,7 @@ interface Client {
   thumbnail?: string;
   color?: string;
   status?: 'live' | 'archived';
+  gallery?: GalleryInput[];
 }
 
 interface Props {

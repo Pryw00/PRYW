@@ -6,18 +6,24 @@ const byFeatured = <T extends { featured?: number }>(a: T, b: T) => a.featured! 
 /** Projects for one language, sorted, with a language-free slug. */
 export async function getProjects(lang: Lang) {
   const all = await getCollection('projects');
-  // `featured` only needs to be set in one language's file; the other inherits it
-  const featuredBySlug = new Map<string, number>();
-  for (const e of all) {
-    const slug = e.id.split('/').slice(1).join('/');
-    if (e.data.featured && (e.id.startsWith(`${lang}/`) || !featuredBySlug.has(slug))) featuredBySlug.set(slug, e.data.featured);
-  }
+  const slugOf = (id: string) => id.split('/').slice(1).join('/');
+
   return all
     .filter(({ id }) => id.startsWith(`${lang}/`))
     .sort((a, b) => a.data.order - b.data.order)
     .map((entry) => {
-      const slug = entry.id.slice(lang.length + 1);
-      return { ...entry, slug, featured: featuredBySlug.get(slug) };
+      const slug = slugOf(entry.id);
+      // featured / liveUrl / links / images only need to be written in one language's file;
+      // the other language inherits them when its own value is empty.
+      const twin = all.find((e) => e !== entry && slugOf(e.id) === slug)?.data;
+      const data = {
+        ...entry.data,
+        featured: entry.data.featured ?? twin?.featured,
+        liveUrl: entry.data.liveUrl || twin?.liveUrl || undefined,
+        links: entry.data.links.length ? entry.data.links : (twin?.links ?? []),
+        images: entry.data.images.length ? entry.data.images : (twin?.images ?? []),
+      };
+      return { ...entry, data, slug, featured: data.featured };
     });
 }
 

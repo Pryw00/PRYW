@@ -2,6 +2,7 @@
 import WorkTile from './WorkTile.astro';
 import { getProjects, getFeaturedProjects, getClients } from '../data/work';
 import { colorFor } from '../data/palette';
+import { toGallery, lightboxData } from '../data/gallery';
 import { getLangFromUrl, useTranslations, projectPath } from '../i18n/ui';
 
 interface Props {
@@ -49,12 +50,16 @@ const clients = withClients ? await getClients() : [];
   {clients.map((c, i) => {
     const archived = c.status === 'archived';
     const domain = c.url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+    // Offline sites: screenshot + photo gallery open in the lightbox
+    const gallery = [
+      ...(c.thumbnail ? [{ src: c.thumbnail, caption: `${c.name} — ${t('clients.shotCaption')}` }] : []),
+      ...toGallery(c.gallery, c.name),
+    ];
     return (
       <WorkTile
         href={archived ? undefined : c.url}
         external
-        lightbox={archived ? c.thumbnail : undefined}
-        lightboxCaption={`${c.name} — ${domain}`}
+        lightbox={archived && gallery.length ? lightboxData(gallery) : undefined}
         title={c.name}
         color={c.color ?? colorFor(i + 3)}
         image={c.thumbnail}
@@ -62,7 +67,7 @@ const clients = withClients ? await getClients() : [];
         metaLeft={t('kind.client')}
         metaRight={domain}
         kind="client"
-        cursor={archived ? t('cursor.shot') : t('cursor.visit')}
+        cursor={!archived ? t('cursor.visit') : c.gallery.length ? t('cursor.gallery') : t('cursor.shot')}
         archivedLabel={archived ? t('status.archived') : undefined}
       />
     );

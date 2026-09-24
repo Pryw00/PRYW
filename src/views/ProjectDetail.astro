@@ -4,6 +4,7 @@ import ProjectArt from '../components/ProjectArt.astro';
 import { render } from 'astro:content';
 import type { getProjects } from '../data/work';
 import { getLangFromUrl, useTranslations, path, projectPath } from '../i18n/ui';
+import { toGallery, lightboxData } from '../data/gallery';
 
 type Project = Awaited<ReturnType<typeof getProjects>>[number];
 
@@ -16,8 +17,28 @@ const { project, next } = Astro.props;
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 const { Content } = await render(project);
-const { title, description, role, images, liveUrl, credit, color, art, year, kind, stack, status, archiveUrl } = project.data;
+const { title, description, role, images, liveUrl, links, credit, color, art, year, kind, stack, status, archiveUrl } = project.data;
 const archived = status === 'archived';
+// Archived projects keep their extra links (demo, video…) but not the live-site one
+const visitUrl = archived ? undefined : liveUrl;
+const external = { target: '_blank', rel: 'noopener noreferrer' };
+
+const gallery = toGallery(images, title);
+const galleryData = lightboxData(gallery);
+
+// Mosaic: with 3+ photos the first one is big (2×2 on desktop, full row on tablet).
+// The last photo stretches so the grid never ends with a hole.
+const big = gallery.length > 2;
+const holesSm = (gallery.length + (big ? 1 : 0)) % 2;
+const holesLg = (3 - ((gallery.length + (big ? 3 : 0)) % 3)) % 3;
+const shotClass = (i: number) => {
+  if (i === 0 && big) return 'sm:col-span-2 lg:row-span-2';
+  if (i !== gallery.length - 1) return '';
+  return [
+    holesSm ? 'sm:col-span-2' : '',
+    holesLg === 2 ? 'lg:col-span-3' : holesLg === 1 ? 'lg:col-span-2' : holesSm ? 'lg:col-span-1' : '',
+  ].join(' ');
+};
 
 const facts = [
   { label: t('project.type'), value: t(`kind.${kind}`) },
@@ -36,9 +57,17 @@ const facts = [
     </div>
 
     <div class="wrap flex flex-col justify-between gap-(--space-lg) pt-[calc(var(--header-h)+var(--space-sm))] pb-(--space-lg)">
-      <a href={path('projects', lang)} class="mono inline-flex min-h-11 items-center self-start rounded-full border border-current px-4 opacity-85 transition-opacity duration-180 ease-out hover:opacity-100">
-        {t('project.back')}
-      </a>
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <a href={path('projects', lang)} class="mono inline-flex min-h-11 items-center rounded-full border border-current px-4 opacity-85 transition-opacity duration-180 ease-out hover:opacity-100">
+          {t('project.back')}
+        </a>
+        {visitUrl && (
+          <a href={visitUrl} {...external} class="mono inline-flex min-h-11 items-center gap-2 rounded-full bg-bg px-5 text-fg transition-colors duration-180 ease-out hover:bg-fg hover:text-bg" data-magnetic>
+            <span class="size-2 animate-pulse-dot rounded-full bg-block-lime" aria-hidden="true"></span>
+            {t('project.live')}
+          </a>
+        )}
+      </div>
       <div>
         <p class="mono mb-(--space-sm)">
           {t(`kind.${kind}`)} · {year}
@@ -77,30 +106,20 @@ const facts = [
           {t('status.wayback')}
         </a>
       )}
-      {!archived && liveUrl && (
-        <a href={liveUrl} class="btn btn-solid reveal mt-(--space-md)" target="_blank" rel="noopener noreferrer" data-magnetic>
-          {t('project.live')}
-        </a>
+      {(visitUrl || links.length > 0) && (
+        <div class="reveal mt-(--space-md) flex flex-wrap gap-2">
+          {visitUrl && (
+            <a href={visitUrl} {...external} class="btn btn-solid" data-magnetic>{t('project.live')}</a>
+          )}
+          {links.map((l) => (
+            <a href={l.url} {...external} class="btn" data-magnetic>{l.label} ↗</a>
+          ))}
+        </div>
       )}
     </aside>
 
     <div>
       <p class="reveal mb-(--space-lg) font-display text-[clamp(1.4rem,2.6vw,2.2rem)] leading-[1.15] font-medium tracking-[-0.02em]">{description}</p>
-
-      {images.length > 0 && (
-        <div class="mb-(--space-lg) flex flex-col gap-(--tile-gap)">
-          {images.map((src, i) => (
-            <img
-              src={src}
-              alt={`${title} — ${t('project.shot')} ${i + 1}`}
-              loading={i === 0 ? 'eager' : 'lazy'}
-              class="reveal h-auto w-full"
-              width="1200"
-              height="675"
-            />
-          ))}
-        </div>
-      )}
 
       <div class="prose-dark reveal">
         <Content />
@@ -109,6 +128,39 @@ const facts = [
       <p class="mt-(--space-lg) font-mono text-(length:--text-mono) tracking-[0.04em] text-soft">{credit}</p>
     </div>
   </article>
+
+  {gallery.length > 0 && (
+    <section class="wrap pb-(--space-xl)" aria-labelledby="gallery-heading">
+      <h2 id="gallery-heading" class="eyebrow mb-(--space-md)">{t('project.gallery')} · {gallery.length}</h2>
+      <ul class="grid grid-flow-row-dense grid-cols-1 gap-(--tile-gap) sm:grid-cols-2 lg:auto-rows-[clamp(160px,16vw,300px)] lg:grid-cols-3" role="list">
+        {gallery.map((img, i) => (
+          <li class:list={['reveal', shotClass(i)]}>
+            <button
+              type="button"
+              class="group/shot relative block aspect-4/3 size-full overflow-hidden bg-surface lg:aspect-auto"
+              data-lightbox={galleryData}
+              data-lightbox-index={i}
+              data-cursor={t('cursor.gallery')}
+              aria-label={`${t('project.gallery')} ${i + 1} / ${gallery.length}${img.caption && img.caption !== title ? ` — ${img.caption}` : ''}`}
+            >
+              <img
+                src={img.src}
+                alt={img.caption ?? ''}
+                loading="lazy"
+                decoding="async"
+                class="size-full object-cover [transition:scale_0.9s_var(--ease-out)] group-hover/shot:scale-105"
+              />
+              {img.caption && img.caption !== title && (
+                <span class="mono absolute inset-x-0 bottom-0 translate-y-full bg-bg/80 px-3 py-2 text-left text-fg backdrop-blur-sm [transition:translate_0.5s_var(--ease-out)] group-hover/shot:translate-y-0 [@media(hover:none)]:translate-y-0">
+                  {img.caption}
+                </span>
+              )}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
 
   <a href={projectPath(next.slug, lang)} class="art-host group/next relative isolate block overflow-hidden bg-c text-ink" data-color={next.data.color} data-cursor={t('cursor.next')}>
     <div class="absolute top-1/2 right-0 -z-1 aspect-square w-[min(60vw,420px)] translate-x-[20%] -translate-y-1/2 opacity-50 [transition:opacity_0.6s,rotate_0.9s_var(--ease-out),scale_0.9s_var(--ease-out)] group-hover/next:scale-108 group-hover/next:-rotate-6 group-hover/next:opacity-90">
