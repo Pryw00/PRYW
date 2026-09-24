@@ -1,0 +1,120 @@
+---
+import ProjectArt from './ProjectArt.astro';
+
+interface Props {
+  /** Omit (and omit `lightbox`) to render a non-clickable tile */
+  href?: string;
+  external?: boolean;
+  /** Screenshot to open in the lightbox instead of navigating (archived client sites) */
+  lightbox?: string;
+  lightboxCaption?: string;
+  title: string;
+  sub?: string;
+  role?: string;
+  color: string;
+  art?: 'pixel' | 'bars' | 'shield' | 'waves' | 'dots';
+  image?: string;
+  imageAlt?: string;
+  metaLeft: string;
+  metaRight: string;
+  kind: string;
+  size?: 'sm' | 'tall' | 'wide';
+  cursor: string;
+  transitionName?: string;
+  /** Label shown when the work is no longer online */
+  archivedLabel?: string;
+}
+
+const {
+  href, external = false, lightbox, lightboxCaption, title, sub, role, color, art, image, imageAlt = '',
+  metaLeft, metaRight, kind, size = 'sm', cursor, transitionName, archivedLabel,
+} = Astro.props;
+
+const Tag = href ? 'a' : lightbox ? 'button' : 'div';
+const clickable = Tag !== 'div';
+const tagProps = href
+  ? { href, target: external ? '_blank' : undefined, rel: external ? 'noopener noreferrer' : undefined }
+  : lightbox
+    ? { type: 'button', 'data-lightbox': lightbox, 'data-lightbox-caption': lightboxCaption }
+    : {};
+---
+<Tag
+  {...tagProps}
+  class:list={[
+    // `tile` is a hook for scripts/tests; layout is all utilities
+    'tile reveal group/tile @container relative isolate flex min-h-full flex-col justify-between overflow-hidden p-[clamp(1rem,2.5vw,1.75rem)] text-left text-ink md:aspect-auto',
+    size === 'tall' && 'md:row-span-2',
+    size === 'wide' && 'md:col-span-2',
+    image || size === 'wide' ? 'aspect-4/3' : size === 'tall' ? 'aspect-4/5' : 'aspect-square',
+    { 'art-host': art, 'is-archived': archivedLabel, 'cursor-default': !clickable },
+  ]}
+  data-color={color}
+  data-kind={kind}
+  data-status={archivedLabel ? 'archived' : 'live'}
+  data-cursor={clickable ? cursor : undefined}
+>
+  <div class:list={['absolute inset-0 -z-3 bg-c', { '[filter:saturate(0.2)]': archivedLabel }]} transition:name={transitionName}></div>
+
+  {art && (
+    <div
+      class:list={[
+        'absolute inset-[14%_8%_44%] -z-1 [transition:scale_0.9s_var(--ease-out),rotate_0.9s_var(--ease-out),opacity_0.6s] group-hover/tile:scale-108 group-hover/tile:-rotate-[1.5deg]',
+        archivedLabel ? 'opacity-45' : 'opacity-90',
+      ]}
+    >
+      <ProjectArt variant={art} seed={href} />
+    </div>
+  )}
+
+  {image && (
+    /* Client tiles: screenshot fills the block, colour band at the bottom */
+    <div class="absolute inset-[0_0_34%_0] -z-2 overflow-hidden bg-surface">
+      <img
+        src={image}
+        alt={imageAlt}
+        width="960"
+        height="600"
+        loading="lazy"
+        decoding="async"
+        class:list={[
+          'size-full object-cover object-top [transition:scale_1s_var(--ease-out),filter_0.6s] group-hover/tile:scale-106 group-hover/tile:[filter:none]',
+          archivedLabel ? '[filter:grayscale(1)_contrast(0.9)_brightness(0.7)]' : '[filter:grayscale(0.4)]',
+        ]}
+      />
+    </div>
+  )}
+
+  <div class:list={['mono flex justify-between', image ? 'gap-3 self-start rounded-full bg-c px-[0.6rem] py-[0.3rem]' : 'gap-4']}>
+    <span>{metaLeft}</span>
+    <span>{metaRight}</span>
+  </div>
+
+  {archivedLabel && (
+    /* Archived: kept as a record, visibly "switched off" */
+    <span
+      class:list={[
+        'mono absolute left-1/2 -translate-1/2 -rotate-6 border border-fg bg-bg px-[0.8rem] py-[0.35rem] whitespace-nowrap text-fg',
+        image ? 'top-[33%]' : 'top-1/2',
+      ]}
+    >
+      {archivedLabel}
+    </span>
+  )}
+
+  <div class="relative">
+    {sub && <p class="mono mb-2 opacity-85">{sub}</p>}
+    <h3
+      class:list={[
+        'heading-display [transition:translate_0.7s_var(--ease-out)] group-hover/tile:-translate-y-[0.2em]',
+        image ? 'text-[clamp(1.25rem,7cqi,3rem)]' : 'text-[clamp(1.6rem,11cqi,6.5rem)]',
+      ]}
+    >
+      {title}
+    </h3>
+    {role && (
+      <p class="mt-3 max-w-[38ch] translate-y-3 text-sm leading-[1.4] opacity-0 [transition:opacity_0.4s,translate_0.6s_var(--ease-out)] group-hover/tile:translate-y-0 group-hover/tile:opacity-90 [@media(hover:none)]:translate-y-0 [@media(hover:none)]:opacity-85">
+        {role}
+      </p>
+    )}
+  </div>
+</Tag>

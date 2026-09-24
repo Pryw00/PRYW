@@ -1,79 +1,31 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ClientGrid from '../components/ClientGrid.astro';
-import { getCollection } from 'astro:content';
+import { getClients } from '../data/work';
+import { getLangFromUrl, useTranslations } from '../i18n/ui';
 
-const clientEntries = await getCollection('clients');
-const clients = clientEntries.map((entry) => entry.data);
+const t = useTranslations(getLangFromUrl(Astro.url));
+const clients = await getClients();
 ---
 <BaseLayout
-  title="Clientes — Wilson Yépez @Pryw00"
-  description="Clientes y proyectos realizados por Wilson Yépez — Tech Web Alchimist. Arte, galerías, gobierno, restaurantes y más."
+  title={`${t('clients.title')} — Wilson Yépez @Pryw00`}
+  description={t('clients.lead')}
 >
-  <!-- Page Hero -->
-  <section class="page-hero section-gradient" aria-labelledby="clients-heading">
-    <div class="page-hero-overlay" aria-hidden="true"></div>
-    <div class="page-hero-inner">
-      <p class="page-hero-label">@Pryw00</p>
-      <h1 id="clients-heading" class="heading-display page-hero-title">Clientes</h1>
-      <p class="page-hero-sub">{clients.length} clientes — Arte, Gobierno, Negocios y más</p>
-    </div>
-  </section>
+  <section class="wrap pt-[calc(var(--header-h)+var(--space-lg))] pb-(--space-xl)" aria-labelledby="clients-heading">
+    <header class="mb-(--space-lg)">
+      <p class="eyebrow">{t('clients.eyebrow')}</p>
+      <h1 id="clients-heading" class="heading-art mt-(--space-xs) flex items-start gap-[0.1em] text-(length:--text-giant)">
+        <span data-split>{t('clients.title')}</span>
+        <sup class="static mt-[0.8em] rounded-full align-super leading-[0.88] bg-accent px-[0.6rem] py-[0.3rem] font-mono text-[clamp(0.75rem,1.4vw,1rem)] tracking-normal text-bg uppercase" data-count={clients.length}>{clients.length}</sup>
+      </h1>
+      <p class="mt-(--space-md) max-w-[48ch] text-soft">{t('clients.lead')}</p>
+    </header>
 
-  <!-- Client Grid -->
-  <section class="clients-section">
-    <div class="clients-inner">
-      <ClientGrid clients={clients} />
-    </div>
+    <ClientGrid clients={clients} />
   </section>
 </BaseLayout>
 
-<style>
-  .page-hero {
-    position: relative;
-    padding: var(--space-xl) var(--space-md);
-    overflow: hidden;
-  }
+<script>
+  import '../scripts/filters';
+</script>
 
-  .page-hero-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.25);
-  }
-
-  .page-hero-inner {
-    position: relative;
-    z-index: 1;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  .page-hero-label {
-    font-size: var(--text-small);
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.75);
-    margin-bottom: var(--space-xs);
-  }
-
-  .page-hero-title {
-    font-size: var(--text-h1);
-    color: #fff;
-  }
-
-  .page-hero-sub {
-    font-size: var(--text-body);
-    color: rgba(255,255,255,0.8);
-    margin-top: var(--space-xs);
-  }
-
-  .clients-section {
-    padding: var(--space-xl) var(--space-md);
-  }
-
-  .clients-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-</style>

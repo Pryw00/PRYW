@@ -1,0 +1,45 @@
+---
+// Screenshot viewer for archived client sites. Any element with
+// data-lightbox="<img src>" (and optional data-lightbox-caption) opens it.
+import { getLangFromUrl, useTranslations } from '../i18n/ui';
+
+const t = useTranslations(getLangFromUrl(Astro.url));
+---
+<dialog
+  id="lightbox"
+  class="m-auto w-[min(92vw,1200px)] max-w-none flex-col gap-3 overflow-visible bg-transparent text-fg backdrop:bg-bg/85 backdrop:backdrop-blur-sm open:flex"
+>
+  <div class="flex items-center justify-between gap-4">
+    <p class="js-lightbox-caption mono text-soft"></p>
+    <button class="js-lightbox-close mono min-h-11 rounded-full border border-line px-4 transition-colors duration-180 ease-out hover:border-fg hover:bg-fg hover:text-bg" type="button" autofocus>
+      {t('lightbox.close')} ✕
+    </button>
+  </div>
+  <img class="js-lightbox-img max-h-[80vh] w-full bg-surface object-contain object-top" alt="" />
+</dialog>
+
+<script>
+  import { setScrollLocked } from '../scripts/motion';
+
+  document.addEventListener('click', (e) => {
+    const dialog = document.getElementById('lightbox') as HTMLDialogElement | null;
+    if (!dialog) return;
+
+    // Close on the button or a click on the backdrop (outside the content)
+    if (dialog.open && (e.target === dialog || (e.target as Element).closest('.js-lightbox-close'))) {
+      dialog.close();
+      return;
+    }
+
+    const trigger = (e.target as Element).closest<HTMLElement>('[data-lightbox]');
+    if (!trigger) return;
+    const img = dialog.querySelector<HTMLImageElement>('.js-lightbox-img')!;
+    const caption = trigger.dataset.lightboxCaption ?? '';
+    img.src = trigger.dataset.lightbox!;
+    img.alt = caption;
+    dialog.querySelector('.js-lightbox-caption')!.textContent = caption;
+    dialog.addEventListener('close', () => setScrollLocked(false), { once: true });
+    setScrollLocked(true);
+    dialog.showModal();
+  });
+</script>

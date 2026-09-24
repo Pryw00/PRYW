@@ -2,315 +2,82 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
 import SkillsMarquee from '../components/SkillsMarquee.astro';
-import ProjectCard from '../components/ProjectCard.astro';
-import { getCollection } from 'astro:content';
-import { profile } from '../data/profile';
+import WorkGrid from '../components/WorkGrid.astro';
+import ClientGrid from '../components/ClientGrid.astro';
+import Portrait from '../components/Portrait.astro';
+import { getProfile } from '../data/profile';
+import { getProjects, getClients, getFeaturedClients } from '../data/work';
+import { getLangFromUrl, useTranslations, path } from '../i18n/ui';
 
-const allProjects = await getCollection('projects');
-const featured = allProjects
-  .sort((a, b) => a.data.order - b.data.order)
-  .slice(0, 4);
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const profile = getProfile(lang);
+
+const projects = await getProjects(lang);
+const clients = await getClients();
+const liveClients = clients.filter((c) => c.status !== 'archived');
+const previewClients = await getFeaturedClients();
+
+const stats = [
+  { value: projects.length, label: t('home.stat.projects') },
+  { value: clients.length, label: t('home.stat.clients') },
+  { value: profile.skills.length, label: t('home.stat.skills') },
+];
 ---
-<BaseLayout
-  title="Wilson Yépez — Tech Web Alchimist"
-  description={profile.bio}
->
-  <!-- Hero -->
-  <Hero
-    name={profile.name}
-    handle={profile.handle}
-    title={profile.title}
-    tagline={profile.tagline}
-    bio={profile.bio}
-  />
+<BaseLayout description={profile.bio}>
+  <Hero name={profile.name} tagline={profile.tagline} location={profile.location} />
 
-  <!-- About / Bio -->
-  <section class="about-section section-light" aria-labelledby="about-heading">
-    <div class="about-inner">
-      <div class="about-text reveal">
-        <h2 id="about-heading" class="heading-display about-heading">Sobre mí</h2>
-        <p class="about-bio">{profile.bio}</p>
-        <ul class="about-details" role="list">
-          <li><strong>Ubicación:</strong> {profile.location}</li>
-          <li>
-            <strong>Email:</strong>
-            <a href={`mailto:${profile.contact.email}`}>{profile.contact.email}</a>
-          </li>
-          <li>
-            <strong>GitHub:</strong>
-            <a href={profile.contact.github} target="_blank" rel="noopener noreferrer">
-              {profile.handle}
-            </a>
-          </li>
-        </ul>
-        <a href="/about" class="about-link">Ver perfil completo →</a>
-      </div>
-      <div class="about-portrait reveal">
-        <div class="portrait-frame">
-          <img
-            src="/images/portrait.jpg"
-            alt="Wilson Yépez — @Pryw00"
-            width="480"
-            height="560"
-            loading="eager"
-            onerror="this.style.display='none'; this.parentElement.classList.add('portrait-frame--missing')"
-          />
-          <div class="portrait-missing-label" aria-hidden="true">W.Y.</div>
-        </div>
-      </div>
+  <!-- Manifesto -->
+  <section class="wrap py-(--space-xl)" aria-labelledby="manifesto-heading">
+    <h2 id="manifesto-heading" class="eyebrow">{t('home.manifesto')}</h2>
+    <div class="mt-(--space-md) grid grid-cols-1 items-center gap-(--space-lg) lg:grid-cols-[1.6fr_1fr]">
+      <p class="max-w-[22ch] font-display text-lead leading-[1.08] font-medium tracking-[-0.03em] md:max-w-[26ch]" data-scrub-words>{t('home.manifestoText')}</p>
+      <a href={path('about', lang)} class="reveal block max-w-[340px] lg:w-full lg:max-w-[420px] lg:justify-self-end" data-cursor={t('nav.about')} aria-label={t('nav.about')}>
+        <div data-parallax="0.12"><Portrait /></div>
+      </a>
     </div>
+    <dl class="mt-(--space-lg) grid grid-cols-1 gap-(--tile-gap) md:grid-cols-3 md:gap-(--space-md)">
+      {stats.map((s) => (
+        <div class="reveal flex items-end justify-between gap-4 border-t border-line py-(--space-sm) md:flex-col md:items-start">
+          <dt class="mono text-soft">{s.label}</dt>
+          <dd class="font-art text-[clamp(3.5rem,9vw,7rem)] leading-[0.8] font-normal tracking-[-0.01em]" data-count={s.value}>{String(s.value).padStart(2, '0')}</dd>
+        </div>
+      ))}
+    </dl>
+  </section>
+
+  <!-- Work -->
+  <section id="trabajo" class="wrap pb-(--space-xl)" aria-labelledby="work-heading">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">{t('home.work')}</p>
+        <h2 id="work-heading" class="section-title heading-art" data-split="words">{t('work.title')}</h2>
+      </div>
+      <a href={path('projects', lang)} class="btn" data-magnetic>{t('common.seeAll')}</a>
+    </div>
+    <WorkGrid featured />
   </section>
 
   <!-- Skills -->
-  <section class="skills-section section-gradient" aria-labelledby="skills-heading">
-    <div class="skills-inner">
-      <h2 id="skills-heading" class="heading-display skills-heading reveal">Skills</h2>
-      <SkillsMarquee skills={profile.skills} />
+  <section class="border-y border-line py-(--space-lg)" aria-labelledby="skills-heading">
+    <div class="wrap">
+      <h2 id="skills-heading" class="eyebrow mb-(--space-md)">{t('home.stack')}</h2>
     </div>
+    <SkillsMarquee skills={profile.skills} />
   </section>
 
-  <!-- Featured Projects -->
-  <section class="projects-section" aria-labelledby="projects-heading">
-    <div class="projects-inner">
-      <h2 id="projects-heading" class="heading-display section-heading reveal">Proyectos</h2>
-      <div class="projects-grid">
-        {featured.map((project) => (
-          <ProjectCard
-            title={project.data.title}
-            description={project.data.description}
-            role={project.data.role}
-            images={project.data.images}
-            liveUrl={project.data.liveUrl}
-            credit={project.data.credit}
-            slug={project.id}
-          />
-        ))}
+  <!-- Clients -->
+  <section class="wrap py-(--space-xl)" aria-labelledby="clients-heading">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">{t('home.clients')}</p>
+        <h2 id="clients-heading" class="section-title heading-art">
+          <span data-count={liveClients.length}>{liveClients.length}</span> {t('home.liveSites')} <span class="text-outline">{t('home.liveSitesOutline')}</span>
+        </h2>
       </div>
-      <div class="projects-cta reveal">
-        <a href="/proyectos" class="btn-outline">Ver todos los proyectos →</a>
-      </div>
+      <a href={path('clients', lang)} class="btn" data-magnetic>{t('common.seeAll')}</a>
     </div>
-  </section>
-
-  <!-- Contact -->
-  <section class="contact-section section-light" aria-labelledby="contact-heading">
-    <div class="contact-inner reveal">
-      <h2 id="contact-heading" class="heading-display contact-heading">Contacto</h2>
-      <p class="contact-sub">¿Tienes un proyecto en mente? Hablemos.</p>
-      <div class="contact-links">
-        <a href={`mailto:${profile.contact.email}`} class="contact-item">
-          <span class="contact-label">Email</span>
-          <span class="contact-value">{profile.contact.email}</span>
-        </a>
-        <a href={`tel:${profile.contact.phone.replace(/\s/g, '')}`} class="contact-item">
-          <span class="contact-label">Teléfono</span>
-          <span class="contact-value">{profile.contact.phone}</span>
-        </a>
-        <a href={profile.contact.linkedin} target="_blank" rel="noopener noreferrer" class="contact-item">
-          <span class="contact-label">LinkedIn</span>
-          <span class="contact-value">linkedin.com/in/pryw00</span>
-        </a>
-        <a href={profile.contact.github} target="_blank" rel="noopener noreferrer" class="contact-item">
-          <span class="contact-label">GitHub</span>
-          <span class="contact-value">github.com/Pryw00</span>
-        </a>
-      </div>
-    </div>
+    <ClientGrid clients={previewClients} filters={false} />
   </section>
 </BaseLayout>
 
-<style>
-  /* About section */
-  .about-section { padding: var(--space-xl) var(--space-md); }
-
-  .about-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-xl);
-    align-items: center;
-  }
-
-  .about-heading {
-    font-size: var(--text-h2);
-    margin-bottom: var(--space-md);
-  }
-
-  .about-bio {
-    font-size: var(--text-body);
-    line-height: 1.75;
-    color: #333;
-    margin-bottom: var(--space-md);
-  }
-
-  .about-details {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-xs);
-    font-size: 0.9375rem;
-    color: #555;
-    margin-bottom: var(--space-md);
-  }
-
-  .about-details a { color: var(--color-accent-purple); text-decoration: none; }
-  .about-details a:hover { text-decoration: underline; }
-
-  .about-link {
-    font-weight: 600;
-    color: var(--color-accent-purple);
-    text-decoration: none;
-    font-size: 0.9375rem;
-  }
-  .about-link:hover { text-decoration: underline; }
-
-  .portrait-frame {
-    position: relative;
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    aspect-ratio: 6/7;
-    background: var(--gradient-hero);
-  }
-
-  .portrait-frame img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: grayscale(1) contrast(1.05);
-  }
-
-  .portrait-frame--missing .portrait-missing-label {
-    display: flex;
-  }
-
-  .portrait-missing-label {
-    display: none;
-    position: absolute;
-    inset: 0;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 5rem;
-    color: rgba(255,255,255,0.4);
-  }
-
-  /* Skills section */
-  .skills-section { padding: var(--space-lg) 0; }
-
-  .skills-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 var(--space-md);
-  }
-
-  .skills-heading {
-    font-size: var(--text-h2);
-    color: #fff;
-    margin-bottom: var(--space-md);
-  }
-
-  /* Projects section */
-  .projects-section { padding: var(--space-xl) var(--space-md); }
-
-  .projects-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  .section-heading {
-    font-size: var(--text-h2);
-    margin-bottom: var(--space-lg);
-  }
-
-  .projects-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: var(--space-md);
-    margin-bottom: var(--space-lg);
-  }
-
-  .projects-cta {
-    text-align: center;
-  }
-
-  .btn-outline {
-    display: inline-block;
-    padding: 0.75rem 2rem;
-    border: 2px solid var(--color-accent-purple);
-    border-radius: var(--radius-md);
-    color: var(--color-accent-purple);
-    font-weight: 600;
-    text-decoration: none;
-    transition: background var(--transition-fast), color var(--transition-fast);
-  }
-  .btn-outline:hover {
-    background: var(--color-accent-purple);
-    color: #fff;
-  }
-
-  /* Contact section */
-  .contact-section { padding: var(--space-xl) var(--space-md); }
-
-  .contact-inner {
-    max-width: 800px;
-    margin: 0 auto;
-    text-align: center;
-  }
-
-  .contact-heading {
-    font-size: var(--text-h2);
-    margin-bottom: var(--space-xs);
-  }
-
-  .contact-sub {
-    font-size: var(--text-body);
-    color: #555;
-    margin-bottom: var(--space-lg);
-  }
-
-  .contact-links {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-sm);
-  }
-
-  .contact-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: var(--space-md);
-    background: var(--color-paper);
-    border-radius: var(--radius-md);
-    text-decoration: none;
-    color: var(--color-ink);
-    box-shadow: 0 1px 6px rgba(0,0,0,0.07);
-    transition: box-shadow var(--transition-fast), transform var(--transition-fast);
-  }
-
-  .contact-item:hover {
-    box-shadow: 0 4px 16px rgba(124,92,252,0.15);
-    transform: translateY(-2px);
-  }
-
-  .contact-label {
-    font-size: var(--text-small);
-    font-weight: 700;
-    color: var(--color-accent-purple);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-
-  .contact-value {
-    font-size: 0.9375rem;
-    color: #333;
-    word-break: break-all;
-  }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    .about-inner { grid-template-columns: 1fr; }
-    .about-portrait { order: -1; max-width: 300px; margin: 0 auto; }
-    .contact-links { grid-template-columns: 1fr; }
-  }
-</style>

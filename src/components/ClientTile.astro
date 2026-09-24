@@ -1,0 +1,74 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/ui';
+
+interface Props {
+  name: string;
+  url: string;
+  category: string;
+  thumbnail?: string;
+  color: string;
+  status?: 'live' | 'archived';
+}
+
+const { name, url, category, thumbnail, color, status = 'live' } = Astro.props;
+const archived = status === 'archived';
+const t = useTranslations(getLangFromUrl(Astro.url));
+const domain = url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+
+// Live → visit the site. Archived → open its screenshot (if any), otherwise not clickable.
+const Tag = !archived ? 'a' : thumbnail ? 'button' : 'div';
+const linkProps = !archived
+  ? { href: url, target: '_blank', rel: 'noopener noreferrer', 'data-cursor': t('cursor.visit') }
+  : thumbnail
+    ? { type: 'button', 'data-lightbox': thumbnail, 'data-lightbox-caption': `${name} — ${domain}`, 'data-cursor': t('cursor.shot') }
+    : {};
+---
+<Tag
+  {...linkProps}
+  class:list={[
+    'client reveal group/client flex flex-col gap-3 text-left',
+    { 'is-archived': archived, 'cursor-default': archived && !thumbnail },
+  ]}
+  data-color={color}
+  data-category={category}
+  data-status={status}
+>
+  <div class="relative aspect-16/10 overflow-hidden bg-surface">
+    {thumbnail ? (
+      <img
+        src={thumbnail}
+        alt={`${t('clients.shotAlt')} ${name}`}
+        width="960"
+        height="600"
+        loading="lazy"
+        decoding="async"
+        class:list={[
+          'size-full object-cover object-top [transition:scale_1s_var(--ease-out),filter_0.6s] group-hover/client:scale-106 group-hover/client:[filter:none]',
+          archived ? '[filter:grayscale(1)_brightness(0.7)]' : '[filter:grayscale(0.35)]',
+        ]}
+      />
+    ) : (
+      <div
+        class:list={['heading-display grid size-full place-items-center bg-c p-4 text-center text-[clamp(1.75rem,4vw,3rem)] text-ink', { 'saturate-[0.2]': archived }]}
+        aria-hidden="true"
+      >
+        {name}
+      </div>
+    )}
+    {archived && (
+      <span class="mono absolute top-3 left-3 z-1 border border-line bg-bg px-[0.6rem] py-[0.3rem] text-fg">{t('status.archived')}</span>
+    )}
+    <div
+      class="absolute inset-0 flex items-end bg-c p-4 text-ink [clip-path:inset(100%_0_0_0)] [transition:clip-path_0.6s_var(--ease-out)] group-hover/client:[clip-path:inset(55%_0_0_0)]"
+      aria-hidden="true"
+    >
+      <span class="heading-display text-[clamp(1.5rem,3vw,2.5rem)]">{name}</span>
+    </div>
+  </div>
+  <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+    <span class="font-medium">{name}</span>
+    <span class:list={['font-mono text-mono tracking-[0.04em] text-soft group-hover/client:text-c', { 'line-through': archived && !thumbnail }]}>
+      {!archived ? `${domain} ↗` : thumbnail ? t('status.viewShot') : domain}
+    </span>
+  </div>
+</Tag>

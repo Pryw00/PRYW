@@ -1,5 +1,6 @@
 ---
 name: "Espinosa Chauvin"
-url: "https://espinosaphotography.com"
+url: "https://fespinosaphotography.com/"
+thumbnail: "/images/clients/fespinosachauvinphotography.jpg"
 category: "Arte y Galerías"
 ---

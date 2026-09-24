@@ -1,120 +1,122 @@
 ---
+import { getLangFromUrl, useTranslations } from "../i18n/ui";
+
 interface Props {
   name: string;
-  handle: string;
-  title: string;
   tagline: string;
-  bio: string;
+  location: string;
 }
 
-const { name, handle, title, tagline, bio } = Astro.props;
+const { name, tagline, location } = Astro.props;
+const t = useTranslations(getLangFromUrl(Astro.url));
+const [first, ...rest] = name.split(" ");
+const tagColors = ["lime", "pink", "yellow", "cyan"];
+const disciplines = t("hero.tags").map((label, i) => ({
+  label,
+  color: tagColors[i],
+}));
 ---
-<section class="hero section-gradient" aria-labelledby="hero-heading">
-  <div class="hero-overlay" aria-hidden="true"></div>
-  <div class="hero-inner">
-    <p class="hero-handle">{handle}</p>
-    <h1 id="hero-heading" class="heading-display hero-name">{name}</h1>
-    <p class="hero-tagline">{tagline}</p>
-    <p class="hero-title">{title}</p>
-    <p class="hero-bio">{bio}</p>
-    <div class="hero-cta">
-      <a href="/proyectos" class="btn btn-primary">Ver Proyectos</a>
-      <a href="/about" class="btn btn-ghost">Sobre mí</a>
+
+<section
+  class="hero relative flex min-h-svh items-stretch overflow-hidden pt-(--header-h)"
+  data-hero
+  aria-labelledby="hero-title"
+>
+  <!-- Morphing colour blob -->
+  <div
+    class="hero-blob pointer-events-none absolute top-[18%] -right-[10%] aspect-square w-[min(70vw,760px)] max-sm:top-[30%] max-sm:-right-[40%] max-sm:w-[110vw]"
+    aria-hidden="true"
+  >
+    <div
+      class="size-full animate-morph rounded-[42%_58%_63%_37%/41%_44%_56%_59%] opacity-55 [background:conic-gradient(from_90deg,var(--color-block-purple),var(--color-block-blue),var(--color-block-cyan),var(--color-block-lime),var(--color-block-pink),var(--color-block-purple))] [filter:blur(60px)_saturate(1.2)]"
+    >
     </div>
+  </div>
+
+  <div
+    class="wrap relative z-1 flex flex-col justify-between gap-(--space-md) pt-(--space-md) pb-(--space-lg)"
+  >
+    <div class="flex flex-wrap items-center justify-between gap-(--space-sm)">
+      <p class="eyebrow">{t("hero.eyebrow")} · {location}</p>
+      <ul class="flex flex-wrap gap-[0.4rem]" role="list">
+        {
+          disciplines.map((d) => (
+            <li
+              class="mono rounded-full bg-c px-[0.7rem] py-[0.35rem] text-ink"
+              data-color={d.color}
+            >
+              {d.label}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <h1
+      id="hero-title"
+      class="font-art text-giant leading-[0.82] font-normal tracking-[-0.02em] max-sm:text-[22vw]"
+    >
+      <span class="block" data-split>{first}</span>
+      <span class="block pl-[0.6em] max-sm:pl-[0.3em] lg:pl-[1.4em]" data-split
+        >{rest.join(" ")}</span
+      >
+    </h1>
+
+    <div class="flex flex-wrap items-end justify-between gap-(--space-md)">
+      <p
+        class="min-h-[1.5em] font-mono text-[clamp(0.8rem,1.4vw,1rem)] tracking-[0.04em] text-fg"
+      >
+        <span class="mr-[0.5em] text-accent">&gt;</span>
+        <span data-typewriter>{tagline.toLowerCase()} — {t("hero.suffix")}</span
+        ><span
+          class="ml-[2px] inline-block h-[1.1em] w-[0.6em] animate-caret bg-accent align-text-bottom"
+          aria-hidden="true"></span>
+      </p>
+      <div class="flex flex-wrap gap-[0.6rem] max-sm:w-full">
+        <a
+          href="#trabajo"
+          class="btn btn-solid max-sm:flex-1 max-sm:justify-center"
+          data-magnetic>{t("hero.cta")}</a
+        >
+        <a
+          href="mailto:pryw95@gmail.com"
+          class="btn max-sm:flex-1 max-sm:justify-center"
+          data-magnetic>{t("hero.talk")}</a
+        >
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="mono absolute right-(--gutter) bottom-(--space-lg) z-1 hidden flex-col items-center gap-3 text-soft [writing-mode:vertical-rl] lg:flex"
+    aria-hidden="true"
+  >
+    <span>Scroll</span>
+    <span
+      class="h-16 w-px animate-scroll-line [background-image:linear-gradient(var(--color-fg)_50%,transparent_50%)] [background-size:1px_200%]"
+    ></span>
   </div>
 </section>
 
-<style>
-  .hero {
-    position: relative;
-    min-height: 92vh;
-    display: flex;
-    align-items: center;
-    overflow: hidden;
-  }
+<script>
+  import { gsap } from "gsap";
 
-  /* Dark overlay for WCAG AA contrast on gradient background */
-  .hero-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.25);
-    pointer-events: none;
-  }
-
-  .hero-inner {
-    position: relative;
-    z-index: 1;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: var(--space-xl) var(--space-md);
-    width: 100%;
-  }
-
-  .hero-handle {
-    font-size: var(--text-small);
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.75);
-    margin-bottom: var(--space-xs);
-  }
-
-  .hero-name {
-    font-size: var(--text-hero);
-    color: #fff;
-    margin-bottom: var(--space-xs);
-  }
-
-  .hero-tagline {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: var(--text-h2);
-    color: rgba(255,255,255,0.9);
-    letter-spacing: -0.02em;
-    margin-bottom: var(--space-sm);
-  }
-
-  .hero-title {
-    font-size: 1rem;
-    color: rgba(255,255,255,0.75);
-    font-weight: 500;
-    margin-bottom: var(--space-md);
-    max-width: 600px;
-  }
-
-  .hero-bio {
-    font-size: var(--text-body);
-    color: rgba(255,255,255,0.9);
-    max-width: 620px;
-    line-height: 1.7;
-    margin-bottom: var(--space-lg);
-  }
-
-  .hero-cta {
-    display: flex;
-    gap: var(--space-sm);
-    flex-wrap: wrap;
-  }
-
-  /* Buttons */
-  .btn {
-    display: inline-block;
-    padding: 0.75rem 2rem;
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    font-size: 0.9375rem;
-    text-decoration: none;
-    transition: opacity var(--transition-fast), transform var(--transition-fast);
-  }
-  .btn:hover { opacity: 0.88; transform: translateY(-1px); }
-
-  .btn-primary {
-    background: #fff;
-    color: var(--color-accent-purple);
-  }
-
-  .btn-ghost {
-    border: 2px solid rgba(255,255,255,0.7);
-    color: #fff;
-  }
-</style>
+  // Blob drifts towards the pointer
+  document.addEventListener("astro:page-load", () => {
+    const blob = document.querySelector<HTMLElement>(".hero-blob");
+    if (
+      !blob ||
+      !matchMedia("(pointer: fine)").matches ||
+      matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
+      return;
+    const xTo = gsap.quickTo(blob, "x", { duration: 2, ease: "power3.out" });
+    const yTo = gsap.quickTo(blob, "y", { duration: 2, ease: "power3.out" });
+    const hero = blob.closest<HTMLElement>(".hero")!;
+    hero.addEventListener("pointermove", (e) => {
+      const r = hero.getBoundingClientRect();
+      xTo((e.clientX / r.width - 0.5) * 160);
+      yTo((e.clientY / r.height - 0.5) * 120);
+    });
+  });
+</script>

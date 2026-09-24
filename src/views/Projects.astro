@@ -1,94 +1,60 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import ProjectCard from '../../components/ProjectCard.astro';
-import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import WorkGrid from '../components/WorkGrid.astro';
+import { getProjects, getClients } from '../data/work';
+import { getLangFromUrl, useTranslations, path } from '../i18n/ui';
 
-const projects = await getCollection('projects');
-const sorted = projects.sort((a, b) => a.data.order - b.data.order);
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const projects = await getProjects(lang);
+const clients = await getClients();
+
+const kinds = [...new Set(projects.map((p) => p.data.kind))];
+const filters = [
+  ...kinds.map((k) => ({ value: k, label: t(`kind.${k}`), count: projects.filter((p) => p.data.kind === k).length })),
+  { value: 'client', label: t('kind.client'), count: clients.length },
+];
+const archivedCount =
+  projects.filter((p) => p.data.status === 'archived').length + clients.filter((c) => c.status === 'archived').length;
 ---
 <BaseLayout
-  title="Proyectos — Wilson Yépez @Pryw00"
-  description="Proyectos de desarrollo web, aplicaciones y videojuegos por Wilson Yépez — Tech Web Alchimist."
+  title={`${t('work.title')} — Wilson Yépez @Pryw00`}
+  description={t('work.lead')}
 >
-  <!-- Page Hero -->
-  <section class="page-hero section-gradient" aria-labelledby="projects-page-heading">
-    <div class="page-hero-overlay" aria-hidden="true"></div>
-    <div class="page-hero-inner">
-      <p class="page-hero-label">@Pryw00</p>
-      <h1 id="projects-page-heading" class="heading-display page-hero-title">Proyectos</h1>
-    </div>
-  </section>
-
-  <!-- Grid -->
-  <section class="projects-section" aria-labelledby="projects-page-heading">
-    <div class="projects-inner">
-      <div class="projects-grid">
-        {sorted.map((project) => (
-          <ProjectCard
-            title={project.data.title}
-            description={project.data.description}
-            role={project.data.role}
-            images={project.data.images}
-            liveUrl={project.data.liveUrl}
-            credit={project.data.credit}
-            slug={project.id}
-          />
-        ))}
+  <div class="wrap grid grid-cols-1 gap-(--space-md) pt-[calc(var(--header-h)+var(--space-md))] pb-(--space-xl) *:min-w-0 lg:grid-cols-[minmax(260px,1fr)_3fr]">
+    <aside>
+      <div class="lg:sticky lg:top-[calc(var(--header-h)+var(--space-sm))]">
+        <p class="eyebrow">{t('work.eyebrow')}</p>
+        <h1 class="heading-art mt-(--space-xs) mb-(--space-sm) text-(length:--text-h1) lg:text-[clamp(2rem,3.5vw,4rem)]" data-split>{t('work.title')}</h1>
+        <p class="mb-(--space-md) max-w-[36ch] text-soft">{t('work.lead')}</p>
+        <div
+          class="chips rail mb-(--space-sm) lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0"
+          data-filters="projects"
+          data-filter-key="kind"
+          role="group"
+          aria-label={t('work.filter')}
+        >
+          <button class="chip" data-filter="*" aria-pressed="true">{t('work.all')} · {projects.length + clients.length}</button>
+          {filters.map((f) => (
+            <button class="chip" data-filter={f.value} aria-pressed="false">{f.label} · {f.count}</button>
+          ))}
+          {archivedCount > 0 && (
+            <button class="chip" data-filter="archived" data-filter-key="status" aria-pressed="false">
+              {t('status.filter')} · {archivedCount}
+            </button>
+          )}
+        </div>
+        <a href={path('clients', lang)} class="mono inline-flex min-h-11 items-center text-soft transition-colors duration-180 ease-out hover:text-accent">{t('work.clientsLink')}</a>
       </div>
+    </aside>
+
+    <div data-filter-scope="projects">
+      <WorkGrid withClients />
     </div>
-  </section>
+  </div>
 </BaseLayout>
 
-<style>
-  .page-hero {
-    position: relative;
-    padding: var(--space-xl) var(--space-md);
-    overflow: hidden;
-  }
+<script>
+  import '../scripts/filters';
+</script>
 
-  .page-hero-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.25);
-  }
-
-  .page-hero-inner {
-    position: relative;
-    z-index: 1;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  .page-hero-label {
-    font-size: var(--text-small);
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.75);
-    margin-bottom: var(--space-xs);
-  }
-
-  .page-hero-title {
-    font-size: var(--text-h1);
-    color: #fff;
-  }
-
-  .projects-section {
-    padding: var(--space-xl) var(--space-md);
-  }
-
-  .projects-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  .projects-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: var(--space-md);
-  }
-
-  @media (max-width: 480px) {
-    .projects-grid { grid-template-columns: 1fr; }
-  }
-</style>

@@ -1,43 +1,46 @@
-# Astro Starter Kit: Minimal
+# PRYW — Portafolio de Wilson Yépez
 
-```sh
-npm create astro@latest -- --template minimal
+Sitio estático en **Astro 7** + **Tailwind CSS v4**, bilingüe (ES en `/`, EN en `/en/`), con animaciones GSAP + Lenis. Se despliega con Docker (nginx) en Dokploy.
+
+## Comandos
+
+| Comando               | Acción                                                          |
+| :-------------------- | :-------------------------------------------------------------- |
+| `npm install`         | Instala dependencias                                            |
+| `npm run dev`         | Servidor local en `localhost:4321`                              |
+| `npm run build`       | Genera el sitio en `./dist/`                                    |
+| `npm run preview`     | Sirve `./dist/` localmente                                      |
+| `npm run screenshots` | Captura los sitios de clientes en `public/images/clients/`      |
+
+## Estilos (Tailwind v4)
+
+- Los **tokens** (colores, fuentes, tamaños, animaciones) viven en `@theme` dentro de `src/styles/global.css`. No hay `tailwind.config.js`.
+  - Colores: `bg-bg`, `text-fg`, `text-soft`, `border-line`, `bg-accent`, `bg-block-lime`…
+  - Color del bloque actual: añade `data-color="lime"` (ver `src/data/palette.ts`) y usa `bg-c` / `text-ink`.
+  - Tipografía: `font-art` (403 DOSHI), `font-display` (Archivo ancho), `font-mono`.
+  - Tamaños: `text-giant`, `text-hero`, `text-lead`… Si combinas un tamaño con `heading-*`, usa `text-(length:--text-h1)` para no pisar el `line-height`.
+- **Patrones reutilizables** como `@utility`: `wrap`, `btn`, `btn-solid`, `chip`, `chips`, `eyebrow`, `mono`, `heading-display`, `heading-art`, `section-head`, `section-title`, `text-outline`, `rail`, `prose-dark`.
+- Los componentes usan utilidades en el markup; no hay bloques `<style>`.
+- Las clases de estado que cambia el JS (`.is-open`, `.is-inview`, `.reveal`, cursor, etc.) están en `global.css` **fuera de capas**, a propósito, para que ganen sobre las utilidades.
+
+## Contenido
+
+- Proyectos: `src/content/projects/es/*.mdx` y `src/content/projects/en/*.mdx` (mismo nombre de archivo en ambos idiomas).
+- Clientes: `src/content/clients/*.md`.
+- Textos de la interfaz: `src/i18n/ui.ts`. Perfil y CV: `src/data/profile.ts`.
+
+Campos útiles en el frontmatter:
+
+```yaml
+featured: 1         # destacado en el inicio, en esa posición (1, 2, 3…)
+status: "archived"   # ya no está en línea; se muestra como histórico
+images: ["/images/projects/shields/01.jpg"]   # galería del proyecto (en public/)
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+- **Destacados:** el inicio muestra solo los proyectos y clientes con `featured`, ordenados por ese número. En proyectos basta ponerlo en el archivo de un idioma. Sin ninguno marcado, se muestran todos los proyectos y los 6 primeros sitios en línea con captura.
+- **Proyecto archivado:** sigue abriendo su página; no muestra enlace al sitio en vivo.
+- **Cliente archivado:** si tiene captura, al hacer clic se abre en un visor; si no, no es clicable.
 
-## 🚀 Project Structure
+## Imágenes
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+Todo lo que esté en `public/` se publica. Las imágenes deben estar en git: Dokploy reconstruye el contenedor desde el repositorio en cada despliegue. Si reemplazas una imagen, cámbiale el nombre; nginx la guarda 30 días en caché.

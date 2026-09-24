@@ -1,167 +1,175 @@
 ---
+import { getLangFromUrl, useTranslations, path, alternatePath, type Lang } from '../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const other: Lang = lang === 'es' ? 'en' : 'es';
+const altHref = alternatePath(Astro.url, other);
+
 const navLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/about', label: 'About' },
-  { href: '/proyectos', label: 'Proyectos' },
-  { href: '/clientes', label: 'Clientes' },
+  { href: path('home', lang), label: t('nav.home') },
+  { href: path('projects', lang), label: t('nav.projects') },
+  { href: path('clients', lang), label: t('nav.clients') },
+  { href: path('about', lang), label: t('nav.about') },
 ];
 
-const currentPath = Astro.url.pathname;
+const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
+const home = path('home', lang);
+const isActive = (href: string) =>
+  href === home ? currentPath === home : currentPath.startsWith(href);
 ---
-<header class="site-header">
-  <div class="header-inner">
-    <a href="/" class="header-brand" aria-label="PRYW — Inicio">
-      <span class="brand-mark">PRYW</span>
-      <span class="brand-handle">@Pryw00</span>
+<!-- State classes (.is-open / .is-scrolled / .is-hidden) are toggled by the script below -->
+<header
+  class="site-header group/header fixed inset-x-0 top-0 z-800 [transition:translate_0.5s_var(--ease-out),background_0.3s] [&.is-hidden]:-translate-y-full [&.is-scrolled:not(.is-open)]:bg-[rgba(11,11,12,0.72)] [&.is-scrolled:not(.is-open)]:backdrop-blur-[14px] [&:not(.is-scrolled):not(.is-open)]:mix-blend-difference"
+>
+  <div class="relative z-2 mx-auto flex h-(--header-h) max-w-[1600px] items-center justify-between gap-(--space-sm) px-(--gutter)">
+    <a href={home} class="brand flex min-h-11 items-center gap-[0.6rem] group-[.is-open]/header:text-bg" aria-label={`PRYW — ${t('nav.home')}`}>
+      <span class="font-art text-2xl leading-none">PRYW</span>
+      <span class="mono text-soft group-[.is-open]/header:text-bg/60">@Pryw00</span>
     </a>
 
-    <button
-      class="nav-toggle"
-      id="nav-toggle"
-      aria-controls="primary-nav"
-      aria-expanded="false"
-      aria-label="Abrir menú de navegación"
-    >
-      <span></span><span></span><span></span>
-    </button>
+    <div class="mono hidden items-center gap-[0.6rem] text-soft md:flex" aria-hidden="true">
+      <span class="size-2 animate-pulse-dot rounded-full bg-block-lime"></span>
+      <span>{t('header.status')} <time class="js-clock">--:--</time></span>
+    </div>
 
-    <nav id="primary-nav" aria-label="Navegación principal">
-      <ul class="nav-list" role="list">
+    <div class="flex items-center gap-(--space-sm)">
+      <nav class="nav-desktop hidden gap-(--space-md) lg:flex" aria-label={t('nav.main')}>
         {navLinks.map(({ href, label }) => (
+          <a
+            href={href}
+            class:list={[
+              'relative py-3 font-mono text-mono tracking-[0.08em] uppercase transition-colors duration-180 ease-out hover:text-fg',
+              'after:absolute after:inset-x-0 after:bottom-[0.45rem] after:h-px after:bg-current after:[transition:scale_450ms_var(--ease-out)] hover:after:origin-left hover:after:scale-x-100',
+              isActive(href) ? 'text-fg after:origin-left after:scale-x-100' : 'text-soft after:origin-right after:scale-x-0',
+            ]}
+            aria-current={isActive(href) ? 'page' : undefined}
+          >
+            {label}
+          </a>
+        ))}
+      </nav>
+
+      <a
+        href={altHref}
+        class="lang-switch group/lang mono inline-flex min-h-11 items-center gap-[0.3rem] px-1 text-soft group-[.is-open]/header:text-bg/60"
+        hreflang={other}
+        lang={other}
+        aria-label={t('header.lang')}
+      >
+        <span class:list={[lang === 'es' ? 'text-fg group-[.is-open]/header:text-bg' : 'group-hover/lang:text-accent']}>ES</span>
+        <span>/</span>
+        <span class:list={[lang === 'en' ? 'text-fg group-[.is-open]/header:text-bg' : 'group-hover/lang:text-accent']}>EN</span>
+      </a>
+
+      <button
+        class="menu-toggle mono min-h-11 min-w-11 rounded-full border border-line px-4 text-fg group-[.is-open]/header:border-bg/25 group-[.is-open]/header:text-bg lg:hidden!"
+        aria-expanded="false"
+        aria-controls="menu-overlay"
+      >
+        <span class="group-[.is-open]/header:hidden">{t('header.menu')}</span>
+        <span class="hidden group-[.is-open]/header:inline">{t('header.close')}</span>
+      </button>
+    </div>
+  </div>
+
+  <div
+    id="menu-overlay"
+    class="menu-overlay fixed inset-0 z-1 flex flex-col justify-between bg-block-lime px-(--gutter) pt-[calc(var(--header-h)+var(--space-md))] pb-(--space-md) text-bg lg:hidden!"
+    hidden
+  >
+    <nav aria-label={t('nav.mobile')}>
+      <ul class="flex flex-col gap-1" role="list">
+        {navLinks.map(({ href, label }, i) => (
           <li>
-            <a
-              href={href}
-              class:list={['nav-link', { active: currentPath === href || (href !== '/' && currentPath.startsWith(href)) }]}
-            >
-              {label}
+            <a href={href} class="menu-link flex items-start gap-3 overflow-hidden" aria-current={isActive(href) ? 'page' : undefined}>
+              <span class="menu-index mono inline-block pt-[0.8em] opacity-60">0{i + 1}</span>
+              <span
+                class:list={[
+                  'menu-label inline-block font-art text-[clamp(3rem,15vw,6rem)] leading-[0.95]',
+                  { 'underline underline-offset-[0.08em] [text-decoration-thickness:0.06em]': isActive(href) },
+                ]}
+              >
+                {label}
+              </span>
             </a>
           </li>
         ))}
       </ul>
     </nav>
+    <div class="mono flex flex-wrap gap-x-(--space-md) gap-y-(--space-sm)">
+      <a class="inline-flex min-h-11 items-center" href="mailto:pryw95@gmail.com">pryw95@gmail.com</a>
+      <a class="inline-flex min-h-11 items-center" href="https://github.com/Pryw00" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+      <a class="inline-flex min-h-11 items-center" href="https://linkedin.com/in/pryw00" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
+    </div>
   </div>
 </header>
 
-<style>
-  .site-header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(0,0,0,0.08);
-  }
-
-  .header-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 var(--space-md);
-    height: 64px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-md);
-  }
-
-  .header-brand {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-xs);
-    text-decoration: none;
-  }
-
-  .brand-mark {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 1.5rem;
-    letter-spacing: -0.04em;
-    background: var(--gradient-hero);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .brand-handle {
-    font-size: var(--text-small);
-    color: #666;
-    font-weight: 500;
-  }
-
-  .nav-list {
-    display: flex;
-    gap: var(--space-md);
-    align-items: center;
-  }
-
-  .nav-link {
-    font-size: 0.9375rem;
-    font-weight: 500;
-    text-decoration: none;
-    color: var(--color-ink);
-    padding: 4px 0;
-    border-bottom: 2px solid transparent;
-    transition: border-color var(--transition-fast), color var(--transition-fast);
-  }
-
-  .nav-link:hover,
-  .nav-link.active {
-    color: var(--color-accent-purple);
-    border-bottom-color: var(--color-accent-purple);
-  }
-
-  .nav-toggle {
-    display: none;
-    flex-direction: column;
-    gap: 5px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 4px;
-  }
-
-  .nav-toggle span {
-    display: block;
-    width: 24px;
-    height: 2px;
-    background: var(--color-ink);
-    border-radius: 2px;
-    transition: transform var(--transition-fast), opacity var(--transition-fast);
-  }
-
-  @media (max-width: 640px) {
-    .nav-toggle {
-      display: flex;
-    }
-
-    #primary-nav {
-      position: absolute;
-      top: 64px;
-      left: 0;
-      right: 0;
-      background: white;
-      border-bottom: 1px solid rgba(0,0,0,0.1);
-      padding: var(--space-sm) var(--space-md);
-      display: none;
-    }
-
-    #primary-nav.open {
-      display: block;
-    }
-
-    .nav-list {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: var(--space-sm);
-    }
-  }
-</style>
-
 <script>
-  const toggle = document.getElementById('nav-toggle');
-  const nav = document.getElementById('primary-nav');
-  toggle?.addEventListener('click', () => {
-    const isOpen = nav?.classList.toggle('open');
-    toggle.setAttribute('aria-expanded', String(isOpen));
-  });
+  import { gsap } from 'gsap';
+  import { setScrollLocked } from '../scripts/motion';
+
+  let clockTimer: number | undefined;
+
+  function initHeader() {
+    // Live clock in Ecuador time
+    const clock = document.querySelector<HTMLTimeElement>('.js-clock');
+    const fmt = new Intl.DateTimeFormat('es-EC', {
+      hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Guayaquil',
+    });
+    const tick = () => { if (clock) clock.textContent = fmt.format(new Date()); };
+    tick();
+    clearInterval(clockTimer);
+    clockTimer = window.setInterval(tick, 15000);
+
+    // Mobile menu
+    const header = document.querySelector<HTMLElement>('.site-header');
+    const toggle = document.querySelector<HTMLButtonElement>('.menu-toggle');
+    const overlay = document.getElementById('menu-overlay');
+    if (!header || !toggle || !overlay) return;
+
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      header.classList.toggle('is-open', open);
+      setScrollLocked(open);
+      if (open) {
+        overlay.hidden = false;
+        gsap.fromTo(overlay, { clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0 0 0% 0)', duration: 0.7, ease: 'expo.inOut' });
+        gsap.fromTo(overlay.querySelectorAll('.menu-label, .menu-index'),
+          { yPercent: 120 }, { yPercent: 0, duration: 0.9, ease: 'expo.out', stagger: 0.05, delay: 0.25 });
+      } else {
+        gsap.to(overlay, {
+          clipPath: 'inset(0 0 100% 0)', duration: 0.5, ease: 'expo.inOut',
+          onComplete: () => { overlay.hidden = true; },
+        });
+      }
+    };
+
+    toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+    overlay.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') { setOpen(false); toggle.focus(); }
+    };
+    document.addEventListener('keydown', onKey);
+
+    // Hide on scroll down, show on scroll up
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (!header.classList.contains('is-open')) {
+        header.classList.toggle('is-hidden', y > lastY && y > 200);
+        header.classList.toggle('is-scrolled', y > 40);
+      }
+      lastY = y;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    document.addEventListener('astro:before-swap', () => {
+      window.removeEventListener('scroll', onScroll);
+      document.removeEventListener('keydown', onKey);
+      setScrollLocked(false);
+    }, { once: true });
+  }
+
+  document.addEventListener('astro:page-load', initHeader);
 </script>
+

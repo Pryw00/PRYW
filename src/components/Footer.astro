@@ -1,106 +1,96 @@
 ---
-import { profile } from '../data/profile';
+import { getProfile } from "../data/profile";
+import { getLangFromUrl, useTranslations, path } from "../i18n/ui";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const profile = getProfile(lang);
+
+const socials = [
+  { label: "GitHub", href: profile.contact.github },
+  { label: "LinkedIn", href: profile.contact.linkedin },
+  {
+    label: "WhatsApp",
+    href: `https://wa.me/${profile.contact.phone.replace(/\D/g, "")}`,
+  },
+];
+
+const linkClass = "inline-flex min-h-11 items-center gap-3 text-[1.05rem] transition-colors duration-180 ease-out hover:text-accent";
 ---
-<footer class="site-footer">
-  <div class="footer-inner">
-    <div class="footer-brand">
-      <span class="footer-mark">PRYW</span>
-      <p class="footer-name">{profile.name}</p>
-      <p class="footer-tagline">{profile.tagline} — {profile.location}</p>
+
+<footer class="relative overflow-hidden border-t border-line bg-bg pt-(--space-xl)" id="contacto">
+  <div class="wrap">
+    <p class="eyebrow">{t("footer.eyebrow")}</p>
+
+    <a
+      href={`mailto:${profile.contact.email}`}
+      class="group/cta mt-(--space-sm) mb-(--space-lg) flex items-start gap-[0.1em] font-art text-giant leading-[0.85] font-normal tracking-[-0.02em] [transition:color_450ms_var(--ease-out)] hover:text-accent"
+      data-cursor={t("cursor.write")}
+    >
+      <span data-split="words">{t("footer.cta")}</span>
+      <span class="text-[0.45em] leading-none [transition:transform_0.6s_var(--ease-out)] group-hover/cta:[transform:translate(0.15em,-0.15em)_rotate(45deg)]" aria-hidden="true">↗</span>
+    </a>
+
+    <div class="grid grid-cols-1 gap-(--space-md) border-t border-line py-(--space-md) md:grid-cols-[2fr_1fr_1fr]">
+      <div class="flex flex-col items-start gap-1">
+        <span class="mono mb-2 text-soft">{t("footer.email")}</span>
+        <button
+          class="js-copy inline-flex min-h-11 items-center gap-3 text-left text-[clamp(1.1rem,2.4vw,1.6rem)] break-all transition-colors duration-180 ease-out hover:text-accent"
+          data-copy={profile.contact.email}
+          data-copied={t("footer.copied")}
+          data-label={t("footer.copy")}
+        >
+          <span>{profile.contact.email}</span>
+          <span class="copy-hint mono rounded-full border border-line px-2 py-[0.2rem] break-normal text-soft" aria-hidden="true">{t("footer.copy")}</span>
+        </button>
+        <a href={`tel:${profile.contact.phone.replace(/\s/g, "")}`} class={linkClass}>{profile.contact.phone}</a>
+      </div>
+
+      <div class="flex flex-col items-start gap-1">
+        <span class="mono mb-2 text-soft">{t("footer.social")}</span>
+        {
+          socials.map((s) => (
+            <a href={s.href} class={linkClass} target="_blank" rel="noopener noreferrer">
+              {s.label} ↗
+            </a>
+          ))
+        }
+      </div>
+
+      <nav class="flex flex-col items-start gap-1" aria-label={t("nav.footer")}>
+        <span class="mono mb-2 text-soft">{t("footer.map")}</span>
+        <a href={path("home", lang)} class={linkClass}>{t("nav.home")}</a>
+        <a href={path("projects", lang)} class={linkClass}>{t("nav.projects")}</a>
+        <a href={path("clients", lang)} class={linkClass}>{t("nav.clients")}</a>
+        <a href={path("about", lang)} class={linkClass}>{t("nav.about")}</a>
+      </nav>
     </div>
 
-    <nav aria-label="Footer navigation" class="footer-nav">
-      <a href="/">Home</a>
-      <a href="/about">About</a>
-      <a href="/proyectos">Proyectos</a>
-      <a href="/clientes">Clientes</a>
-    </nav>
-
-    <div class="footer-contact">
-      <a href={`mailto:${profile.contact.email}`}>{profile.contact.email}</a>
-      <a href={profile.contact.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
-      <a href={profile.contact.github} target="_blank" rel="noopener noreferrer">GitHub</a>
+    <div class="mono flex flex-wrap justify-between gap-x-8 gap-y-2 border-t border-line py-(--space-md) text-soft">
+      <span>© {new Date().getFullYear()} {profile.name} / {profile.handle}</span>
+      <span>{t("footer.made")} · {profile.location}</span>
     </div>
   </div>
-  <p class="footer-copy">© {new Date().getFullYear()} Wilson Yépez / @Pryw00. Todos los derechos reservados.</p>
+
+  <div class="-mb-[0.12em] text-center font-art text-[34vw] leading-[0.75] font-normal tracking-[-0.07em] text-transparent select-none [-webkit-text-stroke:1px_var(--color-line)]" aria-hidden="true">PRYW</div>
 </footer>
 
-<style>
-  .site-footer {
-    background: var(--color-bg-dark);
-    color: rgba(255,255,255,0.85);
-    padding: var(--space-lg) var(--space-md) var(--space-md);
-  }
+<script>
+  document.addEventListener("astro:page-load", () => {
+    document.querySelectorAll<HTMLButtonElement>(".js-copy").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const label = btn.querySelector(".copy-hint");
+        try {
+          await navigator.clipboard.writeText(btn.dataset.copy ?? "");
+          if (label) label.textContent = btn.dataset.copied ?? "";
+        } catch {
+          window.location.href = `mailto:${btn.dataset.copy}`;
+        }
+        setTimeout(() => {
+          if (label) label.textContent = btn.dataset.label ?? "";
+        }, 1800);
+      });
+    });
+  });
+</script>
 
-  .footer-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr auto auto;
-    gap: var(--space-lg);
-    align-items: start;
-    padding-bottom: var(--space-md);
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    margin-bottom: var(--space-md);
-  }
-
-  .footer-mark {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 2.5rem;
-    letter-spacing: -0.04em;
-    background: var(--gradient-hero);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    display: block;
-    margin-bottom: var(--space-xs);
-  }
-
-  .footer-name {
-    font-weight: 600;
-    font-size: 1rem;
-    color: #fff;
-  }
-
-  .footer-tagline {
-    font-size: var(--text-small);
-    color: rgba(255,255,255,0.55);
-    margin-top: 2px;
-  }
-
-  .footer-nav,
-  .footer-contact {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-xs);
-  }
-
-  .footer-nav a,
-  .footer-contact a {
-    font-size: 0.9rem;
-    color: rgba(255,255,255,0.7);
-    text-decoration: none;
-    transition: color var(--transition-fast);
-  }
-
-  .footer-nav a:hover,
-  .footer-contact a:hover {
-    color: var(--color-accent-cyan);
-  }
-
-  .footer-copy {
-    max-width: 1200px;
-    margin: 0 auto;
-    font-size: var(--text-small);
-    color: rgba(255,255,255,0.35);
-    text-align: center;
-  }
-
-  @media (max-width: 640px) {
-    .footer-inner {
-      grid-template-columns: 1fr;
-      gap: var(--space-md);
-    }
-  }
-</style>

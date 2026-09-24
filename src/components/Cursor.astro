@@ -1,0 +1,12 @@
+---
+// Custom cursor. Driven by scripts/motion.ts; only shown on fine pointers.
+// State classes (.is-visible / .is-link / .is-label) are styled in styles/global.css.
+---
+<div
+  id="cursor"
+  class="cursor pointer-events-none fixed top-0 left-0 z-950 -mt-[7px] -ml-[7px] hidden size-3.5 place-items-center rounded-full bg-fg opacity-0 mix-blend-difference [transition:width_0.35s_var(--ease-out),height_0.35s_var(--ease-out),margin_0.35s_var(--ease-out),opacity_0.2s,background_0.35s]"
+  aria-hidden="true"
+  transition:persist
+>
+  <span class="cursor-label font-mono text-[0.7rem] tracking-[0.08em] text-bg uppercase opacity-0 transition-opacity duration-200 ease-[ease]"></span>
+</div>

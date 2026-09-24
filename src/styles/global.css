@@ -1,0 +1,384 @@
+/* ============================================================
+   Tech Web Alquimist (Wilson Yépez / @Pryw00) — Tailwind v4
+   Dark canvas + saturated colour blocks.
+   Tokens live in @theme below; components use utilities.
+   ============================================================ */
+@import 'tailwindcss';
+
+/* 403 DOSHI — display "art" face (403 Type Foundry). */
+@font-face {
+  font-family: '403 Doshi';
+  src: url('/fonts/403-doshi.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* -- Design tokens → utilities (bg-bg, text-fg, font-art, text-giant, …) -- */
+@theme static {
+  --color-bg: #0b0b0c;
+  --color-surface: #141416;
+  --color-surface-2: #1c1c1f;
+  --color-line: rgba(242, 242, 240, 0.12);
+  --color-fg: #f2f2f0;
+  --color-soft: #8a8a8f;
+  --color-accent: #1fe25c;
+
+  /* Colour blocks — each pairs with an AA ink colour */
+  --color-block-orange: #ff4d00;  --color-ink-orange: #0b0b0c;
+  --color-block-lime: #1fe25c;    --color-ink-lime: #0b0b0c;
+  --color-block-blue: #1f4bff;    --color-ink-blue: #f2f2f0;
+  --color-block-yellow: #ffd400;  --color-ink-yellow: #0b0b0c;
+  --color-block-pink: #ff5fa2;    --color-ink-pink: #0b0b0c;
+  --color-block-purple: #7c5cfc;  --color-ink-purple: #ffffff;
+  --color-block-cyan: #4fd8e0;    --color-ink-cyan: #0b0b0c;
+  --color-block-red: #f2261d;     --color-ink-red: #ffffff;
+  --color-block-cream: #f4ebdd;   --color-ink-cream: #0b0b0c;
+
+  /* Wide grotesk (stand-in for Druk Text Wide — swap here if you license it) */
+  --font-display: 'Archivo Variable', 'Archivo', sans-serif;
+  --font-art: '403 Doshi', 'Archivo Variable', sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --text-giant: clamp(3.5rem, 14vw, 13rem);
+  --text-hero: clamp(3rem, 10vw, 9rem);
+  --text-h1: clamp(2.5rem, 7vw, 6rem);
+  --text-h2: clamp(2rem, 5vw, 4rem);
+  --text-h3: clamp(1.25rem, 2.5vw, 1.75rem);
+  --text-lead: clamp(1.5rem, 3.4vw, 3rem);
+  --text-body: clamp(1rem, 1.2vw, 1.125rem);
+  --text-small: 0.8125rem;
+  --text-mono: 0.75rem;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --breakpoint-2xl: 90rem; /* 1440px */
+
+  /* Looping animations (keyframes below) */
+  --animate-grain: grain 1.2s steps(6) infinite;
+  --animate-pulse-dot: pulse-dot 2s infinite;
+  --animate-caret: caret 1s steps(2) infinite;
+  --animate-morph: morph 14s ease-in-out infinite, spin 30s linear infinite;
+  --animate-scroll-line: scroll-line 1.8s var(--ease-out) infinite;
+  --animate-marquee: marquee 40s linear infinite;
+  --animate-blink: blink 3s steps(2) infinite;
+  --animate-blink-soft: blink-soft 4s ease-in-out infinite;
+  --animate-pop: pop 2.4s var(--ease-out) infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-scan: scan 4s linear infinite;
+  --animate-grow: grow 3.2s var(--ease-out) infinite alternate;
+  --animate-shield: shield-pulse 3s ease-in-out infinite;
+  --animate-orbit: spin 30s linear infinite;
+  --animate-draw: draw 5s var(--ease-out) infinite alternate;
+  --animate-ring: ring 2.2s ease-out infinite;
+}
+
+/* Colour of the current block (set by [data-color]) as utilities: bg-c, text-ink … */
+@theme inline {
+  --color-c: var(--c);
+  --color-ink: var(--ink);
+}
+
+/* Layout rhythm — used through arbitrary values, e.g. px-(--gutter) */
+:root {
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 2rem;
+  --space-lg: 4rem;
+  --space-xl: clamp(5rem, 10vw, 9rem);
+  --gutter: clamp(1rem, 3vw, 2rem);
+  --tile-gap: 6px;
+  --header-h: 64px;
+}
+
+/* ------------------------------------------------------------ */
+@layer base {
+  html {
+    background: var(--color-bg);
+    color-scheme: dark;
+  }
+
+  body {
+    font-family: var(--font-body);
+    font-size: var(--text-body);
+    color: var(--color-fg);
+    background: var(--color-bg);
+    line-height: 1.6;
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button { cursor: pointer; }
+  h1, h2, h3 { overflow-wrap: break-word; }
+  ::selection { background: var(--color-accent); color: var(--color-bg); }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+
+  /* Set --c / --ink from a named block */
+  [data-color='orange'] { --c: var(--color-block-orange); --ink: var(--color-ink-orange); }
+  [data-color='lime']   { --c: var(--color-block-lime);   --ink: var(--color-ink-lime); }
+  [data-color='blue']   { --c: var(--color-block-blue);   --ink: var(--color-ink-blue); }
+  [data-color='yellow'] { --c: var(--color-block-yellow); --ink: var(--color-ink-yellow); }
+  [data-color='pink']   { --c: var(--color-block-pink);   --ink: var(--color-ink-pink); }
+  [data-color='purple'] { --c: var(--color-block-purple); --ink: var(--color-ink-purple); }
+  [data-color='cyan']   { --c: var(--color-block-cyan);   --ink: var(--color-ink-cyan); }
+  [data-color='red']    { --c: var(--color-block-red);    --ink: var(--color-ink-red); }
+  [data-color='cream']  { --c: var(--color-block-cream);  --ink: var(--color-ink-cream); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* -- Reusable patterns ---------------------------------------- */
+@utility wrap {
+  width: 100%;
+  max-width: 1600px;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+@utility heading-display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 125%;
+  letter-spacing: -0.02em;
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+
+@utility heading-art {
+  font-family: var(--font-art);
+  font-weight: 400;
+  font-stretch: normal;
+  letter-spacing: -0.01em;
+  line-height: 0.88;
+  text-transform: none;
+}
+
+@utility mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@utility eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  font-family: var(--font-mono);
+  font-size: var(--text-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-soft);
+  &::before {
+    content: '';
+    width: 0.55em;
+    height: 0.55em;
+    background: var(--color-accent);
+  }
+}
+
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  min-height: 48px;
+  padding: 0.8rem 1.5rem;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: var(--text-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: background 180ms var(--ease-out), color 180ms var(--ease-out), border-color 180ms var(--ease-out);
+  &:hover { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
+}
+
+@utility btn-solid {
+  background: var(--color-accent);
+  color: var(--color-bg);
+  border-color: var(--color-accent);
+  &:hover { background: var(--color-fg); border-color: var(--color-fg); }
+}
+
+@utility chips {
+  display: flex;
+  gap: 0.4rem;
+}
+
+@utility chip {
+  flex-shrink: 0;
+  min-height: 40px;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: var(--text-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-soft);
+  white-space: nowrap;
+  transition: background 180ms var(--ease-out), color 180ms var(--ease-out), border-color 180ms var(--ease-out);
+  &:hover { color: var(--color-fg); border-color: var(--color-soft); }
+  &[aria-pressed='true'] { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
+}
+
+/* Section heading row: "(01) Title ........ link" */
+@utility section-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+@utility section-title {
+  font-size: var(--text-h1);
+}
+
+/* Outlined display text */
+@utility text-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--color-fg);
+}
+
+/* Horizontal chip rail that bleeds to the screen edge on mobile */
+@utility rail {
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-inline: calc(var(--gutter) * -1);
+  padding-inline: var(--gutter);
+  &::-webkit-scrollbar { display: none; }
+}
+
+/* Long-form MDX content on project pages */
+@utility prose-dark {
+  max-width: 62ch;
+  color: #c9c9cc;
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  & p { margin-bottom: 1.2em; }
+  & h2, & h3 {
+    font-family: var(--font-display);
+    color: var(--color-fg);
+    font-size: var(--text-h3);
+    margin: 1.6em 0 0.5em;
+    letter-spacing: -0.02em;
+  }
+  & ul { list-style: square; padding-left: 1.2em; margin-bottom: 1.2em; }
+  & li { margin-bottom: 0.4em; }
+  & li::marker { color: var(--color-accent); }
+  & a { color: var(--color-accent); text-decoration: underline; }
+  & strong { color: var(--color-fg); }
+}
+
+/* -- Behaviour hooks (driven by scripts/motion.ts) ------------
+   Deliberately unlayered: state classes toggled by JS must beat utilities. */
+/* Reveal — hidden only when JS motion is active */
+.motion-ready .reveal { opacity: 0; transform: translateY(40px); }
+
+/* Split-text helpers */
+.split-line { display: block; overflow: hidden; padding-bottom: 0.06em; margin-bottom: -0.06em; }
+.split-char { display: inline-block; will-change: transform; }
+
+/* Pause looping artwork while off-screen */
+.art-host:not(.is-inview) .art * { animation-play-state: paused; }
+
+/* Lenis smooth scroll */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+/* Film grain — gives the flat dark canvas some texture */
+.grain {
+  position: fixed;
+  inset: -50%;
+  z-index: 900;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: var(--animate-grain);
+}
+
+/* Custom cursor states (toggled by motion.ts) */
+.has-cursor .cursor { display: grid; }
+.cursor.is-visible { opacity: 1; }
+.cursor.is-link { width: 44px; height: 44px; margin: -22px 0 0 -22px; }
+.cursor.is-label {
+  width: 96px;
+  height: 96px;
+  margin: -48px 0 0 -48px;
+  background: var(--color-accent);
+  mix-blend-mode: normal;
+}
+.cursor.is-label .cursor-label { opacity: 1; }
+
+/* Without JS motion the marquee rows still scroll with plain CSS */
+html:not(.motion-ready) .marquee-track { animation: var(--animate-marquee); }
+html:not(.motion-ready) .marquee-track[data-marquee='reverse'] { animation-direction: reverse; }
+
+/* Page transition: old page sinks away, new page wipes up */
+::view-transition-old(root) { animation: vt-out 0.5s var(--ease-out) both; }
+::view-transition-new(root) { animation: vt-in 0.7s var(--ease-out) both; }
+::view-transition-group(*) { animation-duration: 0.7s; animation-timing-function: var(--ease-out); }
+
+@media (prefers-reduced-motion: reduce) {
+  .grain { animation: none; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+}
+
+/* -- Keyframes ------------------------------------------------ */
+@keyframes grain {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-3%, 2%); }
+  40% { transform: translate(2%, -4%); }
+  60% { transform: translate(-4%, -2%); }
+  80% { transform: translate(3%, 3%); }
+}
+@keyframes vt-out { to { opacity: 0; transform: translateY(-4vh) scale(0.98); } }
+@keyframes vt-in {
+  from { clip-path: inset(100% 0 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+@keyframes pulse-dot {
+  0% { box-shadow: 0 0 0 0 rgba(31, 226, 92, 0.6); }
+  70% { box-shadow: 0 0 0 10px rgba(31, 226, 92, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(31, 226, 92, 0); }
+}
+@keyframes caret { 50% { opacity: 0; } }
+@keyframes morph {
+  33% { border-radius: 63% 37% 45% 55% / 55% 61% 39% 45%; }
+  66% { border-radius: 37% 63% 58% 42% / 38% 42% 58% 62%; }
+}
+@keyframes spin { to { rotate: 360deg; } }
+@keyframes scroll-line {
+  from { background-position: 0 100%; }
+  to { background-position: 0 -100%; }
+}
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* Project artwork (components/ProjectArt.astro) */
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes blink-soft { 50% { opacity: 0.2; } }
+@keyframes pop { 0%, 60%, 100% { transform: scale(1); } 30% { transform: scale(0.7); } }
+@keyframes float { 50% { translate: 0 -12px; } }
+@keyframes scan { from { transform: translateY(-10px); } to { transform: translateY(410px); } }
+@keyframes grow { from { transform: scaleY(0.25); } to { transform: scaleY(1); } }
+@keyframes shield-pulse { 50% { opacity: 0.35; } }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes ring {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(3.2); opacity: 0; }
+}

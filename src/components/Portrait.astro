@@ -1,0 +1,33 @@
+---
+import { existsSync } from "node:fs";
+
+interface Props {
+  class?: string;
+  eager?: boolean;
+}
+
+const { class: className, eager = false } = Astro.props;
+// Drop a photo at public/images/portrait.jpg and it shows up automatically
+const hasPortrait = existsSync("public/images/portrait.jpg");
+---
+
+<!-- Duotone: greyscale photo multiplied over the backdrop, full colour on hover -->
+<figure class:list={["group/portrait relative isolate aspect-6/7 overflow-hidden", className]}>
+  {
+    hasPortrait ? (
+      <img
+        src="/images/portrait.jpg"
+        alt="Wilson Yépez"
+        width="960"
+        height="1120"
+        loading={eager ? "eager" : "lazy"}
+        decoding="async"
+        class="size-full object-cover object-[50%_15%] mix-blend-multiply [filter:grayscale(1)_contrast(1.15)_brightness(1.05)] [transition:filter_0.8s_var(--ease-out),scale_1.2s_var(--ease-out)] group-hover/portrait:scale-[1.03] group-hover/portrait:mix-blend-normal group-hover/portrait:[filter:none]"
+      />
+    ) : (
+      <span class="heading-display absolute inset-0 grid place-items-center text-[clamp(4rem,12vw,7rem)] text-ink-purple" aria-hidden="true">
+        W.Y.
+      </span>
+    )
+  }
+</figure>

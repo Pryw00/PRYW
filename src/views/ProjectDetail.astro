@@ -1,45 +1,100 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getCollection, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProjectArt from '../components/ProjectArt.astro';
+import { render } from 'astro:content';
+import type { getProjects } from '../data/work';
+import { getLangFromUrl, useTranslations, path, projectPath } from '../i18n/ui';
 
-export async function getStaticPaths() {
-  const projects = await getCollection('projects');
-  return projects.map((project) => ({
-    params: { slug: project.id },
-    props: { project },
-  }));
+type Project = Awaited<ReturnType<typeof getProjects>>[number];
+
+interface Props {
+  project: Project;
+  next: Project;
 }
 
-const { project } = Astro.props;
+const { project, next } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
 const { Content } = await render(project);
-const { title, description, role, images, liveUrl, credit } = project.data;
+const { title, description, role, images, liveUrl, credit, color, art, year, kind, stack, status, archiveUrl } = project.data;
+const archived = status === 'archived';
+
+const facts = [
+  { label: t('project.type'), value: t(`kind.${kind}`) },
+  { label: t('project.year'), value: year },
+  { label: t('project.role'), value: role },
+];
 ---
 <BaseLayout
   title={`${title} — Wilson Yépez @Pryw00`}
   description={description}
 >
-  <!-- Page Hero -->
-  <section class="project-hero section-gradient" aria-labelledby="project-title">
-    <div class="project-hero-overlay" aria-hidden="true"></div>
-    <div class="project-hero-inner">
-      <a href="/proyectos" class="back-link">← Proyectos</a>
-      <h1 id="project-title" class="heading-display project-title">{title}</h1>
-      <p class="project-role-badge">{role}</p>
+  <section class="art-host relative isolate flex min-h-[88svh] overflow-hidden text-ink" data-color={color} data-hero aria-labelledby="project-title">
+    <div class="absolute inset-0 -z-2 bg-c" transition:name={`project-${project.slug}`}></div>
+    <div class="absolute top-[12%] -right-[8%] -z-1 aspect-square w-[min(80vw,720px)] opacity-90" data-parallax="0.3">
+      <ProjectArt variant={art} seed={project.slug} />
+    </div>
+
+    <div class="wrap flex flex-col justify-between gap-(--space-lg) pt-[calc(var(--header-h)+var(--space-sm))] pb-(--space-lg)">
+      <a href={path('projects', lang)} class="mono inline-flex min-h-11 items-center self-start rounded-full border border-current px-4 opacity-85 transition-opacity duration-180 ease-out hover:opacity-100">
+        {t('project.back')}
+      </a>
+      <div>
+        <p class="mono mb-(--space-sm)">
+          {t(`kind.${kind}`)} · {year}
+          {archived && <span class="ml-3 inline-block bg-bg px-[0.6rem] py-[0.2rem] text-fg">{t('status.archived')}</span>}
+        </p>
+        <h1 id="project-title" class="max-w-[12ch] font-art text-(length:--text-hero) leading-[0.85] font-normal tracking-[-0.01em]" data-split>{title}</h1>
+      </div>
     </div>
   </section>
 
-  <!-- Main content -->
-  <article class="project-article">
-    <div class="project-inner">
+  <article class="wrap grid grid-cols-1 gap-(--space-lg) py-(--space-xl) lg:grid-cols-[minmax(280px,1fr)_2fr] lg:gap-(--space-xl)">
+    <aside class="lg:sticky lg:top-[calc(var(--header-h)+var(--space-md))] lg:self-start">
+      <dl class="flex flex-col">
+        {facts.map((f) => (
+          <div class="reveal grid grid-cols-[7rem_1fr] gap-4 border-t border-line py-4">
+            <dt class="mono pt-[0.2em] text-soft">{f.label}</dt>
+            <dd>{f.value}</dd>
+          </div>
+        ))}
+        {stack.length > 0 && (
+          <div class="reveal grid grid-cols-[7rem_1fr] gap-4 border-t border-line py-4">
+            <dt class="mono pt-[0.2em] text-soft">{t('project.stack')}</dt>
+            <dd>
+              <ul class="flex flex-wrap gap-[0.35rem]" role="list">
+                {stack.map((s) => <li class="mono rounded-full border border-line px-[0.6rem] py-[0.3rem]">{s}</li>)}
+              </ul>
+            </dd>
+          </div>
+        )}
+      </dl>
+      {archived && (
+        <p class="reveal mt-(--space-md) font-mono text-(length:--text-mono) leading-[1.6] tracking-[0.04em] text-soft">{t('status.note')}</p>
+      )}
+      {archived && archiveUrl && (
+        <a href={archiveUrl} class="btn reveal mt-(--space-md)" target="_blank" rel="noopener noreferrer" data-magnetic>
+          {t('status.wayback')}
+        </a>
+      )}
+      {!archived && liveUrl && (
+        <a href={liveUrl} class="btn btn-solid reveal mt-(--space-md)" target="_blank" rel="noopener noreferrer" data-magnetic>
+          {t('project.live')}
+        </a>
+      )}
+    </aside>
+
+    <div>
+      <p class="reveal mb-(--space-lg) font-display text-[clamp(1.4rem,2.6vw,2.2rem)] leading-[1.15] font-medium tracking-[-0.02em]">{description}</p>
 
       {images.length > 0 && (
-        <div class="project-gallery">
+        <div class="mb-(--space-lg) flex flex-col gap-(--tile-gap)">
           {images.map((src, i) => (
             <img
               src={src}
-              alt={`${title} — screenshot ${i + 1}`}
+              alt={`${title} — ${t('project.shot')} ${i + 1}`}
               loading={i === 0 ? 'eager' : 'lazy'}
-              class="gallery-img"
+              class="reveal h-auto w-full"
               width="1200"
               height="675"
             />
@@ -47,168 +102,22 @@ const { title, description, role, images, liveUrl, credit } = project.data;
         </div>
       )}
 
-      <div class="project-body reveal">
-        <div class="project-meta">
-          <div class="meta-item">
-            <span class="meta-label">Rol</span>
-            <span class="meta-value">{role}</span>
-          </div>
-          {liveUrl && (
-            <div class="meta-item">
-              <span class="meta-label">Live</span>
-              <a href={liveUrl} class="meta-value meta-link" target="_blank" rel="noopener noreferrer">
-                Ver sitio ↗
-              </a>
-            </div>
-          )}
-        </div>
-
-        <div class="project-content prose">
-          <Content />
-        </div>
-
-        <p class="project-credit">{credit}</p>
+      <div class="prose-dark reveal">
+        <Content />
       </div>
+
+      <p class="mt-(--space-lg) font-mono text-(length:--text-mono) tracking-[0.04em] text-soft">{credit}</p>
     </div>
   </article>
+
+  <a href={projectPath(next.slug, lang)} class="art-host group/next relative isolate block overflow-hidden bg-c text-ink" data-color={next.data.color} data-cursor={t('cursor.next')}>
+    <div class="absolute top-1/2 right-0 -z-1 aspect-square w-[min(60vw,420px)] translate-x-[20%] -translate-y-1/2 opacity-50 [transition:opacity_0.6s,rotate_0.9s_var(--ease-out),scale_0.9s_var(--ease-out)] group-hover/next:scale-108 group-hover/next:-rotate-6 group-hover/next:opacity-90">
+      <ProjectArt variant={next.data.art} seed={next.slug} />
+    </div>
+    <div class="wrap flex flex-col gap-(--space-sm) py-(--space-xl)">
+      <span class="mono">{t('project.next')}</span>
+      <span class="font-art text-(length:--text-giant) leading-[0.85] font-normal tracking-[-0.01em] [transition:translate_0.8s_var(--ease-out)] group-hover/next:translate-x-[0.08em]">{next.data.title.split(/\s+—\s+/)[0]}</span>
+    </div>
+  </a>
 </BaseLayout>
 
-<style>
-  .project-hero {
-    position: relative;
-    padding: var(--space-xl) var(--space-md);
-    overflow: hidden;
-  }
-
-  .project-hero-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.28);
-  }
-
-  .project-hero-inner {
-    position: relative;
-    z-index: 1;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  .back-link {
-    display: inline-block;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: rgba(255,255,255,0.8);
-    text-decoration: none;
-    margin-bottom: var(--space-md);
-    transition: color var(--transition-fast);
-  }
-  .back-link:hover { color: #fff; }
-
-  .project-title {
-    font-size: var(--text-h1);
-    color: #fff;
-    margin-bottom: var(--space-sm);
-  }
-
-  .project-role-badge {
-    display: inline-block;
-    padding: 4px 16px;
-    background: rgba(255,255,255,0.2);
-    border: 1px solid rgba(255,255,255,0.35);
-    border-radius: 999px;
-    font-size: var(--text-small);
-    color: #fff;
-    font-weight: 500;
-  }
-
-  .project-article {
-    padding: var(--space-xl) var(--space-md);
-  }
-
-  .project-inner {
-    max-width: 900px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-lg);
-  }
-
-  .project-gallery {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-  }
-
-  .gallery-img {
-    border-radius: var(--radius-lg);
-    width: 100%;
-    height: auto;
-  }
-
-  .project-meta {
-    display: flex;
-    gap: var(--space-lg);
-    flex-wrap: wrap;
-    padding: var(--space-md);
-    background: var(--color-bg-light);
-    border-radius: var(--radius-md);
-    margin-bottom: var(--space-md);
-  }
-
-  .meta-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .meta-label {
-    font-size: var(--text-small);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--color-accent-purple);
-  }
-
-  .meta-value {
-    font-size: 0.9375rem;
-    color: var(--color-ink);
-  }
-
-  .meta-link {
-    color: var(--color-accent-purple);
-    text-decoration: none;
-    font-weight: 600;
-  }
-  .meta-link:hover { text-decoration: underline; }
-
-  /* Prose styles */
-  .prose {
-    font-size: var(--text-body);
-    line-height: 1.75;
-    color: #333;
-  }
-
-  .prose :global(h2) {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: var(--text-h3);
-    margin: var(--space-md) 0 var(--space-xs);
-    color: var(--color-ink);
-  }
-
-  .prose :global(p) {
-    margin-bottom: var(--space-sm);
-  }
-
-  .prose :global(a) {
-    color: var(--color-accent-purple);
-  }
-
-  .project-credit {
-    font-size: var(--text-small);
-    color: #999;
-    margin-top: var(--space-lg);
-    padding-top: var(--space-md);
-    border-top: 1px solid rgba(0,0,0,0.08);
-  }
-</style>

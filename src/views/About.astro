@@ -1,312 +1,102 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { profile } from '../data/profile';
+import SkillsMarquee from '../components/SkillsMarquee.astro';
+import { getProfile } from '../data/profile';
+import { colorFor } from '../data/palette';
+import { getLangFromUrl, useTranslations } from '../i18n/ui';
+import Portrait from '../components/Portrait.astro';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const profile = getProfile(lang);
+const rowClass = 'grid grid-cols-1 gap-x-4 py-[0.35rem] md:grid-cols-[11rem_1fr]';
 ---
 <BaseLayout
-  title="Sobre mí — Wilson Yépez @Pryw00"
-  description="Ingeniero en Sistemas Computacionales, Magíster en Computación y Experto en Ciberseguridad. Desarrollador Web desde Ibarra, Ecuador."
+  title={`${t('nav.about')} — Wilson Yépez @Pryw00`}
+  description={`${profile.title}. ${profile.bio}`}
 >
-  <!-- Page Hero -->
-  <section class="page-hero section-gradient" aria-labelledby="about-page-heading">
-    <div class="page-hero-overlay" aria-hidden="true"></div>
-    <div class="page-hero-inner">
-      <p class="page-hero-label">@Pryw00</p>
-      <h1 id="about-page-heading" class="heading-display page-hero-title">Sobre mí</h1>
-    </div>
-  </section>
+  <!-- Intro -->
+  <section class="wrap pt-[calc(var(--header-h)+var(--space-lg))] pb-(--space-xl)" data-hero aria-labelledby="about-heading">
+    <p class="eyebrow">{t('about.eyebrow')} · {profile.handle}</p>
+    <h1 id="about-heading" class="mt-(--space-xs) mb-(--space-lg) font-art text-(length:--text-hero) leading-[0.85] font-normal tracking-[-0.01em]">
+      <span class="split-line" data-split>{t('about.line1')}</span>
+      <span class="split-line text-outline" data-split>{t('about.line2')}</span>
+    </h1>
 
-  <!-- Bio -->
-  <section class="bio-section section-light" aria-labelledby="bio-heading">
-    <div class="bio-inner">
-      <div class="bio-text reveal">
-        <h2 id="bio-heading" class="heading-display bio-heading">Wilson Yépez</h2>
-        <p class="bio-subtitle">{profile.title}</p>
-        <p class="bio-body">{profile.bio}</p>
-        <div class="bio-contact">
-          <a href={`mailto:${profile.contact.email}`}>{profile.contact.email}</a>
-          <span>{profile.contact.phone}</span>
-          <a href={profile.contact.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
-          <a href={profile.contact.github} target="_blank" rel="noopener noreferrer">GitHub</a>
-        </div>
+    <div class="grid grid-cols-1 gap-(--space-lg) md:grid-cols-[1fr_1.6fr] md:items-start">
+      <div class="reveal max-w-[420px]"><Portrait eager /></div>
+
+      <div>
+        <p class="font-display text-[clamp(1.4rem,2.8vw,2.4rem)] leading-[1.12] font-medium tracking-[-0.02em]" data-scrub-words>{profile.bio}</p>
+        <ul class="mt-(--space-md) flex flex-col gap-2 text-soft" role="list">
+          {profile.title.split(' · ').map((t) => <li class="mono reveal">✦ {t}</li>)}
+        </ul>
       </div>
-      <div class="bio-portrait reveal">
-        <div class="portrait-frame">
-          <img
-            src="/images/portrait.jpg"
-            alt="Wilson Yépez"
-            width="480"
-            height="560"
-            loading="eager"
-            onerror="this.style.display='none'; this.parentElement.classList.add('portrait-frame--missing')"
-          />
-          <div class="portrait-missing-label" aria-hidden="true">W.Y.</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Education -->
-  <section class="edu-section" aria-labelledby="edu-heading">
-    <div class="content-inner">
-      <h2 id="edu-heading" class="heading-display section-heading reveal">Educación</h2>
-      <ul class="edu-list" role="list">
-        {profile.education.map((item) => (
-          <li class="edu-item reveal">
-            <span class="edu-period">{item.period}</span>
-            <h3 class="edu-degree">{item.degree}</h3>
-            <p class="edu-institution">{item.institution}</p>
-          </li>
-        ))}
-      </ul>
-    </div>
-  </section>
-
-  <!-- Training -->
-  <section class="training-section section-light" aria-labelledby="training-heading">
-    <div class="content-inner">
-      <h2 id="training-heading" class="heading-display section-heading reveal">Capacitaciones</h2>
-      <ul class="training-list" role="list">
-        {profile.training.map((item) => (
-          <li class="training-item reveal">
-            <div class="training-meta">
-              <span class="training-platform">{item.platform} · {item.year}</span>
-              <span class="training-hours">{item.hours}h</span>
-            </div>
-            <p class="training-title">{item.title}</p>
-          </li>
-        ))}
-      </ul>
     </div>
   </section>
 
   <!-- Experience -->
-  <section class="exp-section" aria-labelledby="exp-heading">
-    <div class="content-inner">
-      <h2 id="exp-heading" class="heading-display section-heading reveal">Experiencia</h2>
-      <ul class="exp-list" role="list">
-        {profile.experience.map((item) => (
-          <li class="exp-item reveal">
-            <h3 class="exp-role">{item.role}</h3>
-            {item.company && <p class="exp-company">{item.company}</p>}
-          </li>
-        ))}
-      </ul>
+  <section class="wrap pt-(--space-xl)" aria-labelledby="exp-heading">
+    <div class="section-head">
+      <h2 id="exp-heading" class="section-title heading-art" data-split="words">{t('about.experience')}</h2>
+    </div>
+    <ol class="border-b border-line" role="list">
+      {profile.experience.map((item, i) => (
+        <li
+          class="reveal group/exp relative isolate grid grid-cols-[2.5rem_1fr] gap-x-4 gap-y-1 overflow-hidden border-t border-line px-2 py-(--space-sm) [transition:color_0.4s] before:absolute before:inset-0 before:-z-1 before:origin-bottom before:scale-y-0 before:bg-c before:[transition:scale_0.5s_var(--ease-out)] hover:text-ink hover:before:scale-y-100 md:grid-cols-[3rem_1.4fr_1fr] md:items-baseline md:px-4"
+          data-color={colorFor(i)}
+        >
+          <span class="mono row-span-2 pt-[0.5em] text-soft group-hover/exp:text-ink md:row-auto">{String(i + 1).padStart(2, '0')}</span>
+          <h3 class="font-display text-[clamp(1.6rem,4.5vw,3.5rem)] leading-[0.95] font-extrabold tracking-[-0.02em] uppercase [font-stretch:125%]">{item.company}</h3>
+          <p class="text-soft group-hover/exp:text-ink md:text-right">{item.role}</p>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <!-- Skills -->
+  <section class="pt-(--space-xl)" aria-label={t('about.skills')}>
+    <SkillsMarquee skills={profile.skills} />
+  </section>
+
+  <!-- Education + training as a terminal log -->
+  <section class="wrap pt-(--space-xl)" aria-labelledby="edu-heading">
+    <div class="section-head">
+      <h2 id="edu-heading" class="section-title heading-art" data-split="words">{t('about.education')}</h2>
+    </div>
+
+    <div class="reveal overflow-hidden rounded-[10px] border border-line bg-surface">
+      <div class="flex items-center gap-[6px] border-b border-line bg-surface-2 px-4 py-3" aria-hidden="true">
+        <span class="size-[11px] rounded-full bg-block-red"></span>
+        <span class="size-[11px] rounded-full bg-block-yellow"></span>
+        <span class="size-[11px] rounded-full bg-block-lime"></span>
+        <p class="ml-auto font-mono text-(length:--text-mono) tracking-[0.04em] text-soft">{t('about.logFile')}</p>
+      </div>
+      <div class="p-[clamp(1rem,3vw,2rem)] font-mono text-[clamp(0.8rem,1.2vw,0.95rem)] leading-[1.7]">
+        <p class="mb-2 text-soft"><span class="text-accent">$</span> {t('about.cmdEdu')}</p>
+        <ul class="mb-6" role="list">
+          {profile.education.map((e) => (
+            <li class={rowClass}>
+              <span class="text-block-cyan">[{e.period}]</span>
+              <span><strong class="font-medium text-fg">{e.degree}</strong> <span class="text-soft">— {e.institution}</span></span>
+            </li>
+          ))}
+        </ul>
+
+        <p class="mb-2 text-soft"><span class="text-accent">$</span> {t('about.cmdTraining')}</p>
+        <ul class="mb-6" role="list">
+          {profile.training.map((t) => (
+            <li class={rowClass}>
+              <span class="text-block-cyan">[{t.year}]</span>
+              <span>{t.title} <span class="text-soft">— {t.platform} · {t.hours}h</span></span>
+            </li>
+          ))}
+        </ul>
+        <p class="mb-2 text-soft">
+          <span class="text-accent">$</span> <span class="inline-block h-[1.1em] w-[0.6em] animate-caret bg-accent align-text-bottom" aria-hidden="true"></span>
+        </p>
+      </div>
     </div>
   </section>
 </BaseLayout>
 
-<style>
-  /* Page hero */
-  .page-hero {
-    position: relative;
-    padding: var(--space-xl) var(--space-md);
-    overflow: hidden;
-  }
-
-  .page-hero-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.25);
-  }
-
-  .page-hero-inner {
-    position: relative;
-    z-index: 1;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  .page-hero-label {
-    font-size: var(--text-small);
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.75);
-    margin-bottom: var(--space-xs);
-  }
-
-  .page-hero-title {
-    font-size: var(--text-h1);
-    color: #fff;
-  }
-
-  /* Bio */
-  .bio-section { padding: var(--space-xl) var(--space-md); }
-
-  .bio-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-xl);
-    align-items: center;
-  }
-
-  .bio-heading {
-    font-size: var(--text-h2);
-    margin-bottom: var(--space-xs);
-  }
-
-  .bio-subtitle {
-    font-size: 0.9375rem;
-    color: var(--color-accent-purple);
-    font-weight: 500;
-    margin-bottom: var(--space-md);
-    line-height: 1.5;
-  }
-
-  .bio-body {
-    font-size: var(--text-body);
-    line-height: 1.75;
-    color: #333;
-    margin-bottom: var(--space-md);
-  }
-
-  .bio-contact {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-sm);
-    font-size: 0.9375rem;
-  }
-
-  .bio-contact a, .bio-contact span {
-    color: var(--color-accent-purple);
-    text-decoration: none;
-  }
-
-  .bio-contact a:hover { text-decoration: underline; }
-
-  .portrait-frame {
-    position: relative;
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    aspect-ratio: 6/7;
-    background: var(--gradient-hero);
-  }
-
-  .portrait-frame img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: grayscale(1) contrast(1.05);
-  }
-
-  .portrait-frame--missing .portrait-missing-label {
-    display: flex;
-  }
-
-  .portrait-missing-label {
-    display: none;
-    position: absolute;
-    inset: 0;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 5rem;
-    color: rgba(255,255,255,0.4);
-  }
-
-  /* Shared section styles */
-  .content-inner {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: var(--space-xl) var(--space-md);
-  }
-
-  .section-heading {
-    font-size: var(--text-h2);
-    margin-bottom: var(--space-lg);
-  }
-
-  /* Education */
-  .edu-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-md);
-  }
-
-  .edu-item {
-    border-left: 4px solid var(--color-accent-purple);
-    padding-left: var(--space-md);
-  }
-
-  .edu-period {
-    font-size: var(--text-small);
-    color: var(--color-accent-cyan);
-    font-weight: 600;
-    letter-spacing: 0.04em;
-  }
-
-  .edu-degree {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin: 4px 0 2px;
-  }
-
-  .edu-institution {
-    font-size: 0.9375rem;
-    color: #666;
-  }
-
-  /* Training */
-  .training-section .content-inner { padding: var(--space-xl) var(--space-md); }
-
-  .training-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-  }
-
-  .training-item {
-    background: var(--color-paper);
-    border-radius: var(--radius-md);
-    padding: var(--space-sm) var(--space-md);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  }
-
-  .training-meta {
-    display: flex;
-    justify-content: space-between;
-    font-size: var(--text-small);
-    color: var(--color-accent-purple);
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
-
-  .training-title {
-    font-size: 0.9375rem;
-    color: var(--color-ink);
-  }
-
-  /* Experience */
-  .exp-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-  }
-
-  .exp-item {
-    padding: var(--space-sm) var(--space-md);
-    border-left: 4px solid var(--color-accent-cyan);
-    background: var(--color-bg-light);
-    border-radius: 0 var(--radius-md) var(--radius-md) 0;
-  }
-
-  .exp-role {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--color-ink);
-  }
-
-  .exp-company {
-    font-size: 0.9rem;
-    color: #666;
-    margin-top: 2px;
-  }
-
-  @media (max-width: 768px) {
-    .bio-inner { grid-template-columns: 1fr; }
-    .bio-portrait { order: -1; max-width: 280px; margin: 0 auto; }
-  }
-</style>

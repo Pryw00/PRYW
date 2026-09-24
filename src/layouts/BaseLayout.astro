@@ -1,10 +1,16 @@
 ---
-import '@fontsource/space-grotesk/700.css';
+import '@fontsource-variable/archivo/wdth.css';
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/500.css';
-import '../styles/tokens.css';
+import '@fontsource/jetbrains-mono/400.css';
+import '@fontsource/jetbrains-mono/500.css';
+import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import Cursor from '../components/Cursor.astro';
+import Lightbox from '../components/Lightbox.astro';
+import { getLangFromUrl, useTranslations, alternatePath } from '../i18n/ui';
 
 interface Props {
   title?: string;
@@ -13,24 +19,36 @@ interface Props {
   canonicalUrl?: string;
 }
 
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
 const {
-  title = 'Wilson Yépez — Tech Web Alchimist',
-  description = 'Desarrollador Web, Tech Alquimist y Gamer. Creando plataformas de impacto desde Ibarra, Ecuador.',
+  title = t('meta.title'),
+  description = t('meta.description'),
   ogImage = '/images/og-default.jpg',
   canonicalUrl,
 } = Astro.props;
 
 const siteUrl = 'https://pryw00.dev';
 const canonical = canonicalUrl ?? new URL(Astro.url.pathname, siteUrl).href;
+const alternates = {
+  es: new URL(alternatePath(Astro.url, 'es'), siteUrl).href,
+  en: new URL(alternatePath(Astro.url, 'en'), siteUrl).href,
+};
 ---
 <!doctype html>
-<html lang="es">
+<html lang={lang}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0B0B0C" />
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="es" href={alternates.es} />
+    <link rel="alternate" hreflang="en" href={alternates.en} />
+    <link rel="alternate" hreflang="x-default" href={alternates.es} />
+    <link rel="preload" href="/fonts/403-doshi.woff2" as="font" type="font/woff2" crossorigin />
 
     <!-- Open Graph -->
     <meta property="og:title" content={title} />
@@ -38,7 +56,7 @@ const canonical = canonicalUrl ?? new URL(Astro.url.pathname, siteUrl).href;
     <meta property="og:image" content={ogImage} />
     <meta property="og:url" content={canonical} />
     <meta property="og:type" content="website" />
-    <meta property="og:locale" content="es_EC" />
+    <meta property="og:locale" content={lang === 'en' ? 'en_US' : 'es_EC'} />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -48,28 +66,23 @@ const canonical = canonicalUrl ?? new URL(Astro.url.pathname, siteUrl).href;
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
+    <ClientRouter />
   </head>
   <body>
+    <a href="#main-content" class="fixed -top-[100px] left-(--gutter) z-1000 bg-accent px-4 py-3 font-mono text-(length:--text-mono) text-bg focus:top-(--space-xs)">{t('skip')}</a>
     <Header />
     <main id="main-content">
       <slot />
     </main>
     <Footer />
 
+    <Cursor />
+    <Lightbox />
+    <div class="grain" aria-hidden="true" transition:persist></div>
+
     <script>
-      // Scroll reveal animation
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('visible');
-              observer.unobserve(entry.target);
-            }
-          });
-        },
-        { threshold: 0.12 }
-      );
-      document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+      import '../scripts/motion';
     </script>
   </body>
 </html>
+

@@ -1,0 +1,70 @@
+---
+import WorkTile from './WorkTile.astro';
+import { getProjects, getFeaturedProjects, getClients } from '../data/work';
+import { colorFor } from '../data/palette';
+import { getLangFromUrl, useTranslations, projectPath } from '../i18n/ui';
+
+interface Props {
+  limit?: number;
+  /** Also list client websites (the full "all work" view) */
+  withClients?: boolean;
+  /** Only projects marked `featured`, in that order (home page) */
+  featured?: boolean;
+}
+
+const { limit, withClients = false, featured = false } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const projects = (featured ? await getFeaturedProjects(lang) : await getProjects(lang)).slice(0, limit);
+const clients = withClients ? await getClients() : [];
+---
+<div
+  class:list={[
+    'grid grid-cols-1 gap-(--tile-gap) md:grid-flow-row-dense md:auto-rows-[clamp(240px,26vw,480px)] md:grid-cols-2',
+    { 'xl:auto-rows-[clamp(220px,17vw,360px)] xl:grid-cols-3': withClients },
+  ]}
+>
+  {projects.map((p, i) => {
+    const [main, sub] = p.data.title.split(/\s+—\s+/);
+    return (
+      <WorkTile
+        href={projectPath(p.slug, lang)}
+        title={main}
+        sub={sub}
+        role={p.data.role}
+        color={p.data.color}
+        art={p.data.art}
+        metaLeft={String(i + 1).padStart(2, '0')}
+        metaRight={`${t(`kind.${p.data.kind}`)} · ${p.data.year}`}
+        kind={p.data.kind}
+        size={p.data.size}
+        cursor={t('cursor.view')}
+        transitionName={`project-${p.slug}`}
+        archivedLabel={p.data.status === 'archived' ? t('status.archived') : undefined}
+      />
+    );
+  })}
+
+  {clients.map((c, i) => {
+    const archived = c.status === 'archived';
+    const domain = c.url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+    return (
+      <WorkTile
+        href={archived ? undefined : c.url}
+        external
+        lightbox={archived ? c.thumbnail : undefined}
+        lightboxCaption={`${c.name} — ${domain}`}
+        title={c.name}
+        color={c.color ?? colorFor(i + 3)}
+        image={c.thumbnail}
+        imageAlt={`${t('clients.shotAlt')} ${c.name}`}
+        metaLeft={t('kind.client')}
+        metaRight={domain}
+        kind="client"
+        cursor={archived ? t('cursor.shot') : t('cursor.visit')}
+        archivedLabel={archived ? t('status.archived') : undefined}
+      />
+    );
+  })}
+</div>
