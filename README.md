@@ -2,6 +2,54 @@
 
 Sitio estático en **Astro 7** + **Tailwind CSS v4**, bilingüe (ES en `/`, EN en `/en/`), con animaciones GSAP + Lenis. Se despliega con Docker (nginx) en Dokploy.
 
+Sitio en producción: <https://pryw00.dev>
+
+## Características
+
+- Bilingüe español/inglés con i18n nativo de Astro (español sin prefijo, inglés en `/en/`) y sitemap por idioma.
+- Proyectos en MDX y clientes en Markdown mediante content collections (destacados, archivados, galerías con visor).
+- Animaciones con GSAP y desplazamiento suave con Lenis; cursor personalizado.
+- Script con Playwright para capturar automáticamente los sitios de los clientes.
+- Imagen Docker multi-etapa (build con Node 22 + servido con nginx, gzip, caché y cabeceras de seguridad).
+
+## Stack
+
+| Área        | Tecnología                                              |
+| :---------- | :------------------------------------------------------ |
+| Framework   | Astro 7 (estático) + `@astrojs/mdx` + `@astrojs/sitemap` |
+| Estilos     | Tailwind CSS v4 (`@tailwindcss/vite`)                   |
+| Animación   | GSAP, Lenis                                             |
+| Tipografías | Fontsource (Archivo, Inter, JetBrains Mono) + 403 DOSHI |
+| Utilidades  | Playwright (capturas de clientes)                       |
+| Despliegue  | Docker + nginx, Dokploy                                 |
+
+## Estructura
+
+```
+.
+├── public/               # favicon, fuentes e imágenes (proyectos y clientes)
+├── scripts/              # capture-screenshots.mjs (Playwright)
+├── src/
+│   ├── components/       # Header, Hero, WorkGrid, ClientGrid, Lightbox, Cursor…
+│   ├── content/          # projects/{es,en}/*.mdx y clients/*.md
+│   ├── data/             # profile, palette, work, gallery
+│   ├── i18n/             # ui.ts (textos de la interfaz)
+│   ├── layouts/          # BaseLayout.astro
+│   ├── pages/            # rutas ES (/) y EN (/en/)
+│   ├── scripts/          # motion.ts, filters.ts
+│   ├── styles/           # global.css (tokens @theme de Tailwind v4)
+│   └── views/            # vistas compartidas entre idiomas
+├── Dockerfile
+├── docker-compose.yml
+└── nginx.conf
+```
+
+## Requisitos
+
+- Node.js >= 22.12.0
+- npm
+- Docker (opcional, para probar la imagen de producción)
+
 ## Comandos
 
 | Comando               | Acción                                                          |
@@ -57,3 +105,24 @@ gallery:             # clientes archivados: fotos extra que se ven junto a la ca
 ## Imágenes
 
 Todo lo que esté en `public/` se publica. Las imágenes deben estar en git: Dokploy reconstruye el contenedor desde el repositorio en cada despliegue. Si reemplazas una imagen, cámbiale el nombre; nginx la guarda 30 días en caché.
+
+## Build y despliegue
+
+```bash
+npm run build            # genera ./dist/
+docker compose up --build  # sirve la imagen de producción en http://localhost
+```
+
+El `Dockerfile` compila el sitio con Node 22 y lo sirve con nginx (`nginx.conf`). En Dokploy la aplicación se construye desde el repositorio con ese `Dockerfile` en cada despliegue.
+
+## Estado
+
+Activo — en producción en <https://pryw00.dev> y en actualización continua.
+
+## Repositorio
+
+<https://github.com/Pryw00/pryw-portfolio>
+
+## Autor
+
+Wilson Yépez (PRYW)
